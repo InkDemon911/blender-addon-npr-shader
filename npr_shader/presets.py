@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""NPR Studio — 预设材质组。
+"""NPR Shader — 预设材质组。
 
 需求里的四个预设组（衣服 / 头发 / 身体 / 眼睛）在这里落地；另外补充了
 「脸部 / 睫眉 / 口齿」三个参考文件里实际存在的部位分组，以及一个通用兜底组。
@@ -161,7 +161,7 @@ def create_from_preset(settings, preset_name: str, add_group_material: bool = Tr
         add_group_material: 是否把组自己的 NPR 材质也加入组内材质列表
 
     Returns:
-        新建的 :class:`~npr_studio.properties.NprMaterialGroup`（已设为当前组）
+        新建的 :class:`~npr_shader.properties.NprMaterialGroup`（已设为当前组）
     """
     preset = get_preset(preset_name) or DEFAULT_PRESET
     group = settings.new_group(preset["name"], preset["part"])

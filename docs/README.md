@@ -1,4 +1,4 @@
-# NPR Studio — Blender 5.2 / EEVEE 三渲二（NPR）插件
+# NPR Shader — Blender 5.2 / EEVEE 三渲二（NPR）插件
 
 一个**完全自包含**的三渲二着色插件：所有节点组都由 Python 在插件内构建，
 不依赖任何外部 `.blend` 文件或用户已安装的节点组资产。
@@ -11,26 +11,26 @@
 
 ### 方式 A：手动放到插件目录（本次采用）
 
-把 `npr_studio` 目录复制到：
+把 `npr_shader` 目录复制到：
 
 ```
-%APPDATA%\Blender Foundation\Blender\5.2\scripts\addons\npr_studio\
+%APPDATA%\Blender Foundation\Blender\5.2\scripts\addons\npr_shader\
 ```
 
 本次的实际安装位置：
 
 ```
-C:\Users\ink\AppData\Roaming\Blender Foundation\Blender\5.2\scripts\addons\npr_studio
+C:\Users\ink\AppData\Roaming\Blender Foundation\Blender\5.2\scripts\addons\npr_shader
 ```
 
 ### 方式 B：从磁盘安装 zip
 
-把 `npr_studio` 目录打包成 zip，用
+把 `npr_shader` 目录打包成 zip，用
 `Edit → Preferences → Add-ons → Install from Disk…` 安装。
 
 ### 启用
 
-`Edit → Preferences → Add-ons`，搜索 **NPR**，勾选 **NPR Studio**。
+`Edit → Preferences → Add-ons`，搜索 **NPR**，勾选 **NPR Shader**。
 勾选后偏好会写入磁盘，**以后每次打开 Blender 都自动加载**。
 
 在 3D 视图按 `N` 打开侧栏，会看到 **三渲二 / NPR** 标签页。
@@ -201,11 +201,11 @@ C:\Users\ink\AppData\Roaming\Blender Foundation\Blender\5.2\scripts\addons\npr_s
 ```powershell
 # 结构检查：18 组构建 + 接口与参考文件一致性 + 参数绑定
 & "D:\Program Files\Blender Foundation\Blender 5.2\blender.exe" -b --factory-startup `
-  --python "npr_studio\tools_dev_check.py" -- "<工作区>"
+  --python "npr_shader\tools_dev_check.py" -- "<工作区>"
 
 # 功能检查：12 步（注册 / 预设 / 组管理 / 四种模式 / 描边 / 渲染 / 灯光无关 / 撤销）
 & "D:\Program Files\Blender Foundation\Blender 5.2\blender.exe" -b --factory-startup `
-  --python "npr_studio\tools_func_check.py" -- "<工作区>"
+  --python "npr_shader\tools_func_check.py" -- "<工作区>"
 ```
 
 当前实测结果：**结构检查 0 失败；功能检查 12 步 0 失败**。

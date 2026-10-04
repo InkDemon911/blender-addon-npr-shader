@@ -1,27 +1,26 @@
 """功能自检：注册插件 → 建组 → 一键应用 → 描边 → 渲染验证。
 
 用法：
-    blender -b --factory-startup --python npr_studio/tools/tools_func_check.py
+    blender -b --factory-startup --python npr_shader/tools_func_check.py
     # 也可显式指定插件父目录与渲染输出目录：
-    blender -b --factory-startup --python npr_studio/tools/tools_func_check.py -- <插件父目录> <输出目录>
+    blender -b --factory-startup --python npr_shader/tools_func_check.py -- <插件父目录> <输出目录>
 """
 
 import os
 import sys
 import traceback
 
-# 默认把"插件父目录"推断为脚本所在目录的上两级（tools/ → npr_studio/ → 仓库根）
-plugin_parent = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# 让 tools_common 可导入（它与本脚本同目录）
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import tools_common
+
+# 自动向上找到"包含插件包的那一级目录"，对安装布局 / 仓库布局 / 源码直跑都成立
+plugin_parent = tools_common.setup()
 out_dir = os.path.join(plugin_parent, "render_out")
 if "--" in sys.argv:
     rest = sys.argv[sys.argv.index("--") + 1:]
-    if rest:
-        plugin_parent = rest[0]
     if len(rest) > 1:
         out_dir = rest[1]
-
-if plugin_parent not in sys.path:
-    sys.path.insert(0, plugin_parent)
 
 import bpy
 from mathutils import Vector
@@ -46,11 +45,11 @@ def check(condition, msg):
 
 # ======================================================================================
 step("1. 注册插件")
-import npr_studio
-from npr_studio import core, operators, outline, presets, shader_nodes, ui, utils
+import npr_shader
+from npr_shader import core, operators, outline, presets, shader_nodes, ui, utils
 
 try:
-    npr_studio.register()
+    npr_shader.register()
     print("    register() 完成")
 except Exception:
     traceback.print_exc()
@@ -489,7 +488,7 @@ check(scene.view_settings.view_transform == 'Standard', "View Transform = Standa
 
 step("12. 卸载插件")
 try:
-    npr_studio.unregister()
+    npr_shader.unregister()
     check(not hasattr(bpy.types.Scene, "npr_settings"), "unregister 后 npr_settings 已移除")
 except Exception:
     traceback.print_exc()

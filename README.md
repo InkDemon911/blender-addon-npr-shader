@@ -58,14 +58,14 @@
 ### 方式 A：下载 Release 里的 zip（最省事）
 
 到 [**Releases**](https://github.com/InkDemon911/blender-addon-npr-shader/releases/latest) 下载
-**`npr_studio-v1.0.0-beta.zip`**，然后
+**`npr_shader-v1.0.0-beta.zip`**，然后
 `编辑 → 偏好设置 → 插件 → 从磁盘安装…` 选择这个 zip 即可。
 
 > 文件名里的 `beta` 是刻意的 —— 提醒你当前是测试版，见上方警示。
 
 ### 方式 B：手动复制目录
 
-把仓库里的 `npr_studio` 整个目录复制到 Blender 的插件目录：
+把仓库里的 `npr_shader` 整个目录复制到 Blender 的插件目录：
 
 | 系统 | 路径 |
 |---|---|
@@ -73,15 +73,15 @@
 | macOS | `~/Library/Application Support/Blender/5.2/scripts/addons/` |
 | Linux | `~/.config/blender/5.2/scripts/addons/` |
 
-然后 `编辑 → 偏好设置 → 插件`，搜索 **NPR**，勾选 **NPR Studio**。
+然后 `编辑 → 偏好设置 → 插件`，搜索 **NPR**，勾选 **NPR Shader**。
 
 ### 方式 C：自己打包 zip
 
 ```bash
-git archive --format=zip --prefix=npr_studio/ -o npr_studio.zip HEAD:npr_studio
+git archive --format=zip --prefix=npr_shader/ -o npr_shader.zip HEAD:npr_shader
 ```
 
-顶层必须是 `npr_studio/`，否则 Blender 认不出这是插件包。
+顶层必须是 `npr_shader/`，否则 Blender 认不出这是插件包。
 
 ### 启用后
 
@@ -128,16 +128,16 @@ git archive --format=zip --prefix=npr_studio/ -o npr_studio.zip HEAD:npr_studio
 BLENDER="D:/Program Files/Blender Foundation/Blender 5.2/blender.exe"   # 按需修改
 
 # 1. 结构 + 接口一致性 + 参数绑定（期望 failures=0）
-"$BLENDER" -b --factory-startup --python npr_studio/tools/tools_dev_check.py
+"$BLENDER" -b --factory-startup --python npr_shader/tools/tools_dev_check.py
 
 # 2. 12 步功能测试，含 EEVEE 渲染断言（期望 fails=0）
-"$BLENDER" -b --factory-startup --python npr_studio/tools/tools_func_check.py
+"$BLENDER" -b --factory-startup --python npr_shader/tools/tools_func_check.py
 
 # 3. 颜色端到端（期望 结论：✓ 正确）
-"$BLENDER" -b --factory-startup --python npr_studio/tools/tools_verify_direct.py
+"$BLENDER" -b --factory-startup --python npr_shader/tools/tools_verify_direct.py
 
 # 4. 分支隔离：先渲染纯红对照，再逐个关分支（期望 01_all_on 即精确蓝色）
-"$BLENDER" -b --factory-startup --python npr_studio/tools/tools_iso_branches.py
+"$BLENDER" -b --factory-startup --python npr_shader/tools/tools_iso_branches.py
 ```
 
 ### 实测结果（Blender 5.2.0 LTS，hash `fbe6228777e7`）
@@ -207,17 +207,23 @@ GitHub Actions 自动化测试。
 
 ```
 .
-├── npr_studio/                 # 插件本体（复制这个目录即可安装）
-│   ├── __init__.py             #   注册入口、模块加载顺序、节点组构建兜底
+├── npr_shader/                 # 插件本体（复制这个目录即可安装）
+│   ├── __init__.py      (142)  #   注册入口、模块加载顺序、节点组构建兜底
 │   ├── utils.py         (571)  #   插槽解析、连线、贴图识别、日志
-│   ├── properties.py    (629)  #   数据模型：材质组/材质引用/候选材质/设置/日志
-│   ├── shader_nodes.py (1937)  #   ★ 18 个 Shader 节点组的 Python 构建器
+│   ├── properties.py    (707)  #   数据模型：材质组/材质引用/候选材质/设置/日志
+│   ├── shader_nodes.py (1962)  #   ★ 18 个 Shader 节点组的 Python 构建器
 │   ├── outline.py       (350)  #   描边：Solidify 倒角外壳 + 修改器
 │   ├── presets.py       (262)  #   8 个预设组
-│   ├── core.py          (680)  #   应用引擎：材质生成、贴图接线、参数下发、反读
-│   ├── operators.py     (644)  #   31 个操作符
-│   ├── ui.py            (609)  #   15 个面板 + 4 个 UIList
+│   ├── core.py          (698)  #   应用引擎：材质生成、贴图接线、参数下发、反读
+│   ├── operators.py     (775)  #   31 个操作符
+│   ├── ui.py            (669)  #   15 个面板 + 4 个 UIList
 │   └── tools/                  #   验证与诊断脚本（不参与插件运行）
+│       ├── tools_common.py     #     路径推断（三种目录布局通用）
+│       ├── tools_dev_check.py  #     结构 / 接口一致性 / 参数绑定
+│       ├── tools_func_check.py #     12 步功能测试
+│       ├── tools_verify_direct.py  # 颜色端到端
+│       ├── tools_iso_branches.py   # 分支隔离
+│       └── tools_ascii_view.py     # PNG → 终端字符缩略图
 ├── docs/                       # 文档
 ├── reference-spec/             # 参考文件的可读规格导出（不含模型与贴图）
 └── LICENSE                     # GPL-3.0-or-later

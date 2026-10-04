@@ -3,21 +3,23 @@
 每一步都打印实测值，避免"以为设上了其实没设上"。
 
 用法：
-    blender -b --factory-startup --python npr_studio/tools/tools_verify_direct.py
+    blender -b --factory-startup --python npr_shader/tools_verify_direct.py
 """
 import os
 import sys
 
-# 插件父目录 = 脚本上两级（tools/ → npr_studio/ → 仓库根）
-plugin_parent = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-if plugin_parent not in sys.path:
-    sys.path.insert(0, plugin_parent)
+# 让 tools_common 可导入（它与本脚本同目录）
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import tools_common
+
+# 自动向上找到"包含插件包的那一级目录"
+plugin_parent = tools_common.setup()
 
 import bpy
-import npr_studio
-from npr_studio import shader_nodes, utils
+import npr_shader
+from npr_shader import shader_nodes, utils
 
-npr_studio.register()
+npr_shader.register()
 scene = bpy.context.scene
 scene.render.engine = 'BLENDER_EEVEE'
 scene.render.resolution_x = scene.render.resolution_y = 32

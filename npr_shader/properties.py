@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""NPR Studio — 数据模型（PropertyGroup）。
+"""NPR Shader — 数据模型（PropertyGroup）。
 
 数据分层：
   Scene.npr_settings  →  NprSettings
@@ -766,7 +766,7 @@ def register():
         bpy.utils.register_class(cls)
     bpy.types.Scene.npr_settings = PointerProperty(
         name="NPR 设置",
-        description="NPR Studio 的材质组与参数（随 .blend 保存）",
+        description="NPR Shader 的材质组与参数（随 .blend 保存）",
         type=NprSettings,
     )
 

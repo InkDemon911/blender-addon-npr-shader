@@ -13,7 +13,7 @@ $ws      = "<工作区路径>"
 ## 1. 结构检查（`tools_dev_check.py`）
 
 ```powershell
-& $blender -b --factory-startup --python "npr_studio\tools_dev_check.py" -- $ws
+& $blender -b --factory-startup --python "npr_shader\tools_dev_check.py" -- $ws
 ```
 
 **覆盖内容**
@@ -38,7 +38,7 @@ DEV_CHECK_DONE failures=0
 ## 2. 功能检查（`tools_func_check.py`）
 
 ```powershell
-& $blender -b --factory-startup --python "npr_studio\tools_func_check.py" -- $ws
+& $blender -b --factory-startup --python "npr_shader\tools_func_check.py" -- $ws
 ```
 
 **12 个步骤**
@@ -80,7 +80,7 @@ FUNC_CHECK_DONE fails=0
 ## 3. 颜色端到端（`tools_verify_direct.py`）
 
 ```powershell
-& $blender -b --factory-startup --python "npr_studio\tools_verify_direct.py"
+& $blender -b --factory-startup --python "npr_shader\tools_verify_direct.py"
 ```
 
 直接给材质挂 `NPR_Shader` 主组，写入一组确定的实参，渲染后断言：
@@ -95,7 +95,7 @@ FUNC_CHECK_DONE fails=0
 用于回归定位"颜色被顶白"类问题：先渲染纯红对照确认取景，再逐个关闭分支。
 
 ```powershell
-& $blender -b --factory-startup --python "npr_studio\tools_iso_branches.py"
+& $blender -b --factory-startup --python "npr_shader\tools_iso_branches.py"
 ```
 
 **期望输出**（关键：`01_all_on` 就必须是精确蓝色）
@@ -118,7 +118,7 @@ FUNC_CHECK_DONE fails=0
 PNG 转成终端字符缩略图（按最大通道着色，R/G/B/W/w/. 分别代表红/绿/蓝/亮灰/暗灰/背景）：
 
 ```powershell
-& $blender -b --factory-startup --python "npr_studio\tools_ascii_view.py" -- "<png 路径>"
+& $blender -b --factory-startup --python "npr_shader\tools_ascii_view.py" -- "<png 路径>"
 ```
 
 ## 6. 人工验收清单（headless 无法覆盖）

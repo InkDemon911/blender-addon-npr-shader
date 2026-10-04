@@ -1,24 +1,20 @@
 """开发自检：导入插件模块、构建节点组、比对参考文件的接口与结构。
 
 用法：
-    blender -b --factory-startup --python npr_studio/tools/tools_dev_check.py
-    # 也可显式指定插件父目录（默认自动取脚本的上上级目录）：
-    blender -b --factory-startup --python npr_studio/tools/tools_dev_check.py -- <插件父目录>
+    blender -b --factory-startup --python npr_shader/tools_dev_check.py
+    # 也可显式指定插件父目录：
+    blender -b --factory-startup --python npr_shader/tools_dev_check.py -- <插件父目录>
 """
-import sys
 import os
+import sys
 import traceback
 
-argv = sys.argv
-# 默认把"插件父目录"推断为脚本所在目录的上两级（tools/ → npr_studio/ → 仓库根）
-plugin_parent = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-if "--" in argv:
-    rest = argv[argv.index("--") + 1:]
-    if rest:
-        plugin_parent = rest[0]
+# 让 tools_common 可导入（它与本脚本同目录）
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import tools_common
 
-if plugin_parent not in sys.path:
-    sys.path.insert(0, plugin_parent)
+# 自动向上找到"包含插件包的那一级目录"，对安装布局 / 仓库布局 / 源码直跑都成立
+plugin_parent = tools_common.setup()
 
 print("PLUGIN PARENT:", plugin_parent)
 
@@ -27,9 +23,9 @@ import bpy
 # ---------------------------------------------------------------- 1. 构建
 shader_nodes = None
 try:
-    import npr_studio
-    from npr_studio import shader_nodes, utils
-    print("IMPORT OK ->", npr_studio.bl_info["name"], npr_studio.bl_info["version"])
+    import npr_shader
+    from npr_shader import shader_nodes, utils
+    print("IMPORT OK ->", npr_shader.bl_info["name"], npr_shader.bl_info["version"])
 except Exception:
     traceback.print_exc()
     sys.exit("IMPORT FAILED")
@@ -158,7 +154,7 @@ else:
 # 材质层通过这些名字写参数；任何一个名字不存在都会导致参数被静默写错插槽。
 print("\n=== 材质层参数名 ↔ 主组接口 绑定检查 ===")
 try:
-    from npr_studio import core
+    from npr_shader import core
     master = bpy.data.node_groups.get("NPR_Shader")
     if master is None:
         failures.append("NPR_Shader 不存在，无法做绑定检查")

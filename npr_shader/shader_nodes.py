@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""NPR Studio — Shader 节点组的 Python 重建（自包含）。
+"""NPR Shader — Shader 节点组的 Python 重建（自包含）。
 
 本模块把参考文件 OdetteV3.blend 里的 18 个 Shader 节点组**逐个用 Python 重建**，
 不引用任何外部 .blend / 已安装节点组。节点拓扑、接口名、接口默认值、混合方式、

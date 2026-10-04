@@ -3,21 +3,23 @@
 探测前先渲染纯红对照，确认取景/几何正常（避免又把背景误读成结果）。
 
 用法：
-    blender -b --factory-startup --python npr_studio/tools/tools_iso_branches.py
+    blender -b --factory-startup --python npr_shader/tools_iso_branches.py
 """
 import os
 import sys
 
-# 插件父目录 = 脚本上两级（tools/ → npr_studio/ → 仓库根）
-plugin_parent = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-if plugin_parent not in sys.path:
-    sys.path.insert(0, plugin_parent)
+# 让 tools_common 可导入（它与本脚本同目录）
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import tools_common
+
+# 自动向上找到"包含插件包的那一级目录"
+plugin_parent = tools_common.setup()
 
 import bpy
-import npr_studio
-from npr_studio import presets, utils, shader_nodes, core
+import npr_shader
+from npr_shader import presets, utils, shader_nodes, core
 
-npr_studio.register()
+npr_shader.register()
 scene = bpy.context.scene
 scene.render.engine = 'BLENDER_EEVEE'
 scene.render.resolution_x = scene.render.resolution_y = 32

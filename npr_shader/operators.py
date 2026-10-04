@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""NPR Studio — 操作符（Operator）层。
+"""NPR Shader — 操作符（Operator）层。
 
 所有会修改数据的操作符都带 ``{'UNDO'}``，因此 Ctrl+Z 可以完整回退
 （材质替换、描边对象创建、参数批量应用都在单次撤销步内）。

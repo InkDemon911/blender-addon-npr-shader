@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""NPR Studio — 通用工具层。
+"""NPR Shader — 通用工具层。
 
 本模块只依赖 bpy / bl_math / mathutils，不依赖插件内其他模块，可被任意层导入。
 
@@ -676,7 +676,7 @@ def outline_material_name(group_name: str) -> str:
 
 def log(message: str, level: str = 'INFO') -> None:
     """写入场景日志（UI 显示）。没有场景设置时退化为控制台输出。"""
-    print("[NPR Studio] %s: %s" % (level, message))
+    print("[NPR Shader] %s: %s" % (level, message))
     try:
         settings = getattr(bpy.context.scene, "npr_settings", None)
     except AttributeError:

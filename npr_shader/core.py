@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""NPR Studio — 材质应用引擎。
+"""NPR Shader — 材质应用引擎。
 
 职责：
   * 扫描选中物体的材质槽

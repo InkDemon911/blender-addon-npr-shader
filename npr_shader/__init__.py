@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""NPR Studio — 面向 Blender 5.2 / EEVEE 的自包含三渲二（NPR）插件。"""
+"""NPR Shader — 面向 Blender 5.2 / EEVEE 的自包含三渲二（NPR）插件。"""
 
 bl_info = {
-    "name": "NPR Studio (三渲二)",
-    "author": "NPR Studio contributors",
+    "name": "NPR Shader",
+    "author": "NPR Shader contributors",
     "version": (1, 0, 0),
     "blender": (5, 2, 0),
     "location": "3D 视图 > 侧边栏(N) > 三渲二",
@@ -53,7 +53,7 @@ def _build_groups_now():
     try:
         from . import shader_nodes
     except Exception as exc:  # noqa: BLE001
-        print("[NPR Studio] 无法导入 shader_nodes：%s: %s" % (type(exc).__name__, exc))
+        print("[NPR Shader] 无法导入 shader_nodes：%s: %s" % (type(exc).__name__, exc))
         return False
     try:
         report = shader_nodes.ensure_all()
@@ -63,11 +63,11 @@ def _build_groups_now():
         text = str(exc)
         if "_RestrictData" in text or "node_groups" in text:
             return False
-        print("[NPR Studio] 构建失败（AttributeError）：%s" % exc)
+        print("[NPR Shader] 构建失败（AttributeError）：%s" % exc)
         return False
     except Exception as exc:  # noqa: BLE001
         import traceback
-        print("[NPR Studio] 构建失败：%s: %s" % (type(exc).__name__, exc))
+        print("[NPR Shader] 构建失败：%s: %s" % (type(exc).__name__, exc))
         traceback.print_exc()
         return False
     if report["errors"]:
@@ -182,7 +182,7 @@ def unregister():
             try:
                 hook()
             except Exception as exc:  # noqa: BLE001
-                print("[NPR Studio] 卸载 %s 失败：%s" % (module.__name__, exc))
+                print("[NPR Shader] 卸载 %s 失败：%s" % (module.__name__, exc))
     _loaded.clear()
 
 

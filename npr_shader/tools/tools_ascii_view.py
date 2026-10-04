@@ -1,7 +1,7 @@
 """把渲染结果转成 ASCII 图，直接在终端里"看"到画面。
 
 用法：
-    blender -b --factory-startup --python npr_studio/tools/tools_ascii_view.py -- <图片路径> [更多路径...]
+    blender -b --factory-startup --python npr_shader/tools_ascii_view.py -- <图片路径> [更多路径...]
 """
 import os
 import sys

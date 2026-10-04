@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""NPR Studio — 描边（倒角外壳 / Inverted Hull）模块。
+"""NPR Shader — 描边（倒角外壳 / Inverted Hull）模块。
 
 参考文件 OdetteV3.blend 中**没有任何描边实现**（已核实：0 个 Solidify 修改器、
 Freestyle 关闭、无 Line Art 材质、无 Grease Pencil、合成器只有 Bloom）。
@@ -225,7 +225,7 @@ def apply_outline(objects, group, mode: str = 'OBJECT', report=None):
 
     Args:
         objects: 源物体列表（网格类型）。
-        group:   :class:`~npr_studio.properties.NprMaterialGroup`。
+        group:   :class:`~npr_shader.properties.NprMaterialGroup`。
         mode:    ``'OBJECT'`` 独立描边对象 / ``'MODIFIER'`` 直接加在源物体上。
         report:  可选列表，用于收集人类可读的操作记录。
 

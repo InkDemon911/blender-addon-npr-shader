@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""NPR Studio — 3D 视图侧边栏（N 面板）UI。
+"""NPR Shader — 3D 视图侧边栏（N 面板）UI。
 
 面板结构（与 docs/PANEL_FLOW.md 一一对应）：
 
@@ -174,7 +174,7 @@ class NprRootPanel(Panel):
             return
 
         col = layout.column(align=True)
-        col.label(text="NPR Studio v%s" % utils.VERSION_STR, icon='SHADERFX')
+        col.label(text="NPR Shader v%s" % utils.VERSION_STR, icon='SHADERFX')
         engine = context.scene.render.engine
         if engine == 'BLENDER_EEVEE':
             col.label(text="渲染引擎：EEVEE", icon='CHECKMARK')
@@ -769,7 +769,7 @@ class NprAdvancedPanel(Panel):
 
         box = layout.box()
         box.label(text="关于", icon='INFO')
-        box.label(text="NPR Studio v%s" % utils.VERSION_STR)
+        box.label(text="NPR Shader v%s" % utils.VERSION_STR)
         box.label(text="节点组内部版本：%d" % utils.NODE_GROUP_VERSION)
         box.label(text="Blender %s" % ".".join(str(v) for v in bpy.app.version))
         box.label(text="自包含：所有节点组由插件代码生成", icon='CHECKMARK')
