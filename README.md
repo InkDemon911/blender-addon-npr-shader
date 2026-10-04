@@ -58,8 +58,10 @@
 ### 方式 A：下载 Release 里的 zip（最省事）
 
 到 [**Releases**](https://github.com/InkDemon911/blender-addon-npr-shader/releases/latest) 下载
-**`npr_studio-v1.0.0.zip`**，然后
+**`npr_studio-v1.0.0-beta.zip`**，然后
 `编辑 → 偏好设置 → 插件 → 从磁盘安装…` 选择这个 zip 即可。
+
+> 文件名里的 `beta` 是刻意的 —— 提醒你当前是测试版，见上方警示。
 
 ### 方式 B：手动复制目录
 
