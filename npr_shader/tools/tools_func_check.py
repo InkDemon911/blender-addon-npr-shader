@@ -495,6 +495,35 @@ except Exception:
     FAILS.append("卸载失败")
 
 # ======================================================================================
+# 贴图专项（独立脚本、独立进程）
+# ======================================================================================
+# 必须单独跑：它要往场景里塞纯色贴图并逐色断言渲染值，与本脚本的场景状态互相干扰。
+# 这里用子进程调用并把它的 fails 并入总账 —— "贴图接线整条失效"曾经在 12 步全绿的
+# 情况下发生（见 tools_texture_check.py 顶部说明），所以这段覆盖是必需的。
+print("\n" + "=" * 70)
+print("贴图专项（子进程）")
+print("=" * 70)
+try:
+    import subprocess
+
+    _script = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           "tools_texture_check.py")
+    _proc = subprocess.run(
+        [bpy.app.binary_path, "-b", "--factory-startup", "--python", _script],
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=900)
+    _out = _proc.stdout.decode("utf-8", "replace")
+    _line = ""
+    for _l in _out.splitlines():
+        if "TEXTURE_CHECK_DONE" in _l:
+            _line = _l.strip()
+    print("   " + (_line or "未找到结果行"))
+    if "fails=0" not in _line:
+        FAILS.append("贴图专项未通过：%s" % (_line or "无输出"))
+except Exception:
+    traceback.print_exc()
+    FAILS.append("贴图专项执行失败")
+
+# ======================================================================================
 print("\n" + "=" * 70)
 print("步骤数：%d，失败项：%d" % (len(STEPS), len(FAILS)))
 for item in FAILS:

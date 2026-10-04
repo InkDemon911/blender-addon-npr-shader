@@ -27,7 +27,16 @@ VERSION = (1, 0, 0)
 VERSION_STR = ".".join(str(v) for v in VERSION)
 
 #: 节点组内部结构版本。改变内部节点拓扑时必须 +1，以便已保存的文件触发重建。
-NODE_GROUP_VERSION = 1
+#:
+#: v2：修正贴图/色调链的接线与算式（色调颜色来源、增益/Ramp 乘性插值、
+#:     去掉自发光的重复相加、色调强度闸）。**这些是拓扑级改动**，
+#:     旧材质靠"只刷新参数"的快速通道不会更新，必须让版本号变化触发整树重建。
+NODE_GROUP_VERSION = 2
+
+#: 材质结构版本。与 :data:`NODE_GROUP_VERSION` 同步 +1：
+#: 节点组拓扑变了，已经生成过的材质（节点树是**复制**下来的实例）也必须重建，
+#: 否则用户升级插件后，老材质会保留旧接线，表现为"插件修好了但画面没变"。
+MATERIAL_VERSION = 2
 
 #: 所有插件创建的节点组统一前缀
 NODE_GROUP_PREFIX = "NPR_"
@@ -37,6 +46,7 @@ KEY_GROUP = "npr_group"
 KEY_PART = "npr_part"
 KEY_NODE_VERSION = "npr_ng_version"
 KEY_GENERATED = "npr_generated"
+KEY_MAT_VERSION = "npr_mat_version"
 
 #: 参考文件（OdetteV3.blend）里固定的部位枚举，接口名必须逐字一致
 PART_ITEMS = (
@@ -101,6 +111,22 @@ def set_material_group(material, group_name: str, part: str = "") -> None:
     elif KEY_PART in material:
         del material[KEY_PART]
     material[KEY_GENERATED] = VERSION_STR
+    material[KEY_MAT_VERSION] = MATERIAL_VERSION
+
+
+def material_is_current(material) -> bool:
+    """材质是否是**当前结构版本**生成的。
+
+    节点树在建材质时被复制成实例，所以节点组改了拓扑之后，老材质**不会**自动跟上。
+    ``ensure_group_material`` 的"只刷新参数"快速通道必须拿这个判断做闸门，
+    否则插件升级后老材质保留旧接线 —— 表现就是"代码明明修好了，画面却没变"。
+    """
+    if material is None:
+        return False
+    try:
+        return int(material.get(KEY_MAT_VERSION, 0)) == MATERIAL_VERSION
+    except (AttributeError, TypeError, ValueError):
+        return False
 
 
 def is_npr_material(material) -> bool:

@@ -378,8 +378,9 @@ def ensure_group_material(group, textures=None, force_rebuild: bool = False):
     elif not force_rebuild and utils.is_npr_material(material) and \
             material.get(utils.KEY_GROUP, "") == group.name and \
             material.get(utils.KEY_PART, "") == group.part and \
+            utils.material_is_current(material) and \
             utils.find_group_instance(material, shader_nodes.G_MASTER) is not None:
-        # 已存在且结构正确：只刷新参数，不做整树重建（性能更好）
+        # 已存在、结构正确、且是**当前结构版本**：只刷新参数，不做整树重建（性能更好）
         master = utils.find_group_instance(material, shader_nodes.G_MASTER)
         _configure_master_inputs(master, group)
         _apply_material_settings(material, group, has_alpha=group.tex_alpha is not None)
@@ -392,9 +393,15 @@ def ensure_group_material(group, textures=None, force_rebuild: bool = False):
 
 
 def update_material_parameters(material, group) -> bool:
-    """只更新已有材质的参数（不重建节点），用于"应用整个组"。"""
+    """只更新已有材质的参数（不重建节点），用于"应用整个组"。
+
+    材质若是**旧结构版本**，这里直接返回 ``False``，让调用方改走整树重建 ——
+    只刷新参数无法修正接线差异（例如贴图/色调链的拓扑改动）。
+    """
     master = utils.find_group_instance(material, shader_nodes.G_MASTER)
     if master is None:
+        return False
+    if not utils.material_is_current(material):
         return False
     _configure_master_inputs(master, group)
     # 贴图槽可能在面板里被改过，逐个同步
@@ -607,10 +614,14 @@ def apply_group(context, group, force_rebuild: bool = False):
         if material == canonical:
             continue
         master = utils.find_group_instance(material, shader_nodes.G_MASTER)
-        if master is None:
-            # 不是 NPR 材质：把它替换成组的主材质（保持槽位不变）
-            _replace_material_everywhere(material, canonical)
-            report.append("%s 不是 NPR 材质，已替换为 %s" % (material.name, canonical.name))
+        if master is None or not utils.material_is_current(material):
+            # 不是 NPR 材质，或**是旧结构版本**：一律替换/重建为组的主材质
+            if master is None:
+                _replace_material_everywhere(material, canonical)
+                report.append("%s 不是 NPR 材质，已替换为 %s" % (material.name, canonical.name))
+            else:
+                ensure_group_material(group, force_rebuild=True)
+                report.append("%s 结构版本过旧，已重建" % material.name)
             continue
         _configure_master_inputs(master, group)
         _apply_material_settings(material, group, has_alpha=group.tex_alpha is not None)

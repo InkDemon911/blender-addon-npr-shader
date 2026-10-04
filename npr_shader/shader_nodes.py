@@ -205,46 +205,52 @@ class Edit:
 
     def color_multiply(self, name, color_node, color_socket, factor_node, factor_socket,
                        location=(0.0, 0.0), channels=3):
-        """把颜色逐通道乘以一个标量：拆分 → Math(MULTIPLY) ×3 → 合并。
+        """颜色 × 乘数：``结果 = A × B``，返回 **Mix(MULTIPLY) 节点**。
 
-        **为什么不用 Mix(MULTIPLY)**：实测在 Blender 5.2 的节点组里，
-        Mix(blend_type='MULTIPLY', data_type='RGBA') 在 A=白、B=目标色、Factor=1
-        的配置下会输出**两倍**于目标色（红 0.1 → 0.1981），单独在材质里测试却正常；
-        行为随上下文变化，不可依赖。
-        拆通道 + Math + CombineColor 只用到标量乘法，语义确定、没有歧义，
-        是"颜色 × 强度"唯一可靠的实现方式。
+        **实现要点（由原语矩阵实测确定，不要改）**：
+        ``A_Color = 颜色``、``B_Color = 乘数``、``Factor = 1.0``。
 
-        Args:
-            color_node / color_socket: 被乘的颜色来源。
-            factor_node / factor_socket: 乘数（标量）。
-            channels: 需要处理的通道数（固定 3，保留参数便于将来扩展）。
-        Returns:
-            合并后的 CombineColor 节点，颜色输出插槽名为 ``Color``。
+        实测（Blender 5.2，节点组内，A=红 1,0,0）：
+
+        ===========================  ==============
+        配置                          输出
+        ===========================  ==============
+        B=白,   Factor=0.5           ``(0.998,0,0)`` ← **Factor 不起插值作用**
+        B=0.5,  Factor=1.0           ``(0.498,0,0)`` ✓
+        B←Float 0.5, Factor=1.0      ``(0.498,0,0)`` ✓
+        ===========================  ==============
+
+        结论：MULTIPLY 模式下 ``结果 = A × B``，**乘数必须放进 B_Color**，
+        不能靠 Factor 承载。``B_Color`` 也接受 Float 输入并隐式转灰度色。
+
+        返回 Mix 节点；结果在 ``Result_Color``，用 ``self.mix_color_out(node)`` 取。
         """
-        split = self.tree.nodes.new('ShaderNodeSeparateColor')
-        split.name = "%s_拆分" % name
-        split.location = location
-        utils.set_prop(split, "mode", 'RGB')
-        self.nodes[split.name] = split
-        self.wire(color_node, color_socket, split, "Color")
+        mix = self.mix(name, blend_type="MULTIPLY", data_type="RGBA", location=location)
+        self.wire(color_node, color_socket, mix, "A_Color")
+        self.wire(factor_node, factor_socket, mix, "B_Color")
+        self.value(mix, "Factor", 1.0)
+        return mix
 
-        combine = self.tree.nodes.new('ShaderNodeCombineColor')
-        combine.name = "%s_合并" % name
-        combine.location = (location[0] + 300.0, location[1])
-        utils.set_prop(combine, "mode", 'RGB')
-        self.nodes[combine.name] = combine
-        # 用 Math 节点表达 alpha（默认 1.0，保持不透明）
-        utils.set_default(combine, "Red", 0.0)
-        utils.set_default(combine, "Green", 0.0)
-        utils.set_default(combine, "Blue", 0.0)
+    def blend_to_white(self, name, color_node, color_socket, factor_node, factor_socket,
+                       location=(0.0, 0.0)):
+        """在**白色**与该颜色之间按 Factor 插值：``F=0 → 白``，``F=1 → 该颜色``。
 
-        for channel in ("Red", "Green", "Blue")[:channels]:
-            mul = self.math("%s_%s" % (name, channel), "MULTIPLY",
-                            (location[0] + 150.0, location[1] - 180.0 * ("Red", "Green", "Blue").index(channel)))
-            self.wire(split, channel, mul, "Value")
-            self.wire(factor_node, factor_socket, mul, "Value_001")
-            self.wire(mul, "Value", combine, channel)
-        return combine
+        用来把"启用开关 + 强度"折成一个乘数色：
+        ``1 − s + s×x`` 等价于"在白与 x 之间以 s 插值"（``白×(1−s) + x×s``），
+        且**两端语义都正确**：s=0 → 白（不改动颜色），s=1 → x（完整生效）。
+
+        返回 Mix 节点（结果在 ``Result_Color``）。
+        """
+        mix = self.mix(name, blend_type="MIX", data_type="RGBA", location=location)
+        self.value(mix, "A_Color", (1.0, 1.0, 1.0, 1.0))
+        self.wire(color_node, color_socket, mix, "B_Color")
+        # **必须写 identifier ``Factor_Float``**：Mix 节点里有 ``Factor_Float`` /
+        # ``Factor_Vector`` / ``Factor_Rotation`` 三个名字都叫 "Factor" 的插槽，
+        # 用 ``"Factor"`` 按名称匹配会落到 **Vector** 那个上（默认 0.5），
+        # 于是插值系数永远不是预期的 s —— 实测表现为"强度=0 时色调仍然生效"，
+        # 颜色被算两次。identifier 是唯一无歧义的键。
+        self.wire(factor_node, factor_socket, mix, "Factor_Float")
+        return mix
 
     def mix(self, name, blend_type="MIX", data_type=None, location=(0.0, 0.0), label="",
             factor: float = None):
@@ -1368,55 +1374,58 @@ def build_base_color():
 
     # ---- 自发光叠加 ----
     # 参考文件用 `Emission → ShaderToRGB → Mix(ADD)` 把自发光叠回颜色；但 ShaderToRGB
-    # 在 EEVEE Next 下对真实着色器输入返回黑色，会把整条链打成黑，故改为等价数学式。
-    # 自发光颜色先乘上 EmissionStrength，再按同一强度在"原色 / 自发光色"之间插值，
-    # 保证强度=0 时完全不参与、强度=1 时整体替换。
+    # 在 EEVEE Next 下对真实着色器输入返回黑色，会把整条链打成黑，故改为等价数学式：
+    #     最终 = 基色 + 自发光色 × 强度
+    # ``自发光`` = ``Emission Color × Emission Strength``；再把它作为 ADD 的 B 直接加上去，
+    # 于是 最终 = 基色 + 自发光色 × 强度：
+    #   强度=0 → 加黑，完全不参与；强度=1 → 加上完整自发光色。
+    # （不要在这里再插一层"按强度插值"，那会让基色被算两次。）
     add_emis = ed.mix("混合.009", blend_type="ADD", location=(640.0, 140.0))
     m_emis = ed.color_multiply("自发光", in_node, "Emission Color",
                                in_node, "Emission Strength", (420.0, -200.0))
-    mix_emis = ed.mix("混合.自发光强度", blend_type="MIX", location=(760.0, -200.0))
-    ed.wire(ed.mix_color_out(add_base), None, mix_emis, "A_Color")
-    ed.wire(m_emis, "Color", mix_emis, "B_Color")
-    ed.from_in("Emission Strength", mix_emis, "Factor")
     ed.wire(ed.mix_color_out(add_base), None, add_emis, "A_Color")
-    ed.wire(ed.mix_color_out(mix_emis), None, add_emis, "B_Color")
+    ed.wire(m_emis, "Result_Color", add_emis, "B_Color")
 
     # ---- 颜色增益 ----
-    # 有效倍率 = 1 + GainStrength × (ColorGain − 1)，用 Math 节点算：
-    #   GainStrength=0 → 1.0（不增益，乘 1 等于不变）
-    #   GainStrength=1 → ColorGain（完整乘算）
-    # 乘法本身走"拆通道 → Math → 合并"，不用 Mix(MULTIPLY)（原因见 color_multiply）。
-    amt_gain = ed.math("运算.增益倍率", "MULTIPLY_ADD", (800.0, 140.0))
-    sub_gain = ed.math("运算.增益差", "SUBTRACT", (620.0, 140.0))
-    ed.from_in("Color Gain", sub_gain, "Value")
-    ed.value(sub_gain, "Value_001", 1.0)
-    ed.wire(sub_gain, "Value", amt_gain, "Value")
-    ed.from_in("Gain Strength", amt_gain, "Value_001")
-    ed.value(amt_gain, "Value_002", 1.0)
-    gain_node = ed.color_multiply("增益", add_emis, "Result",
-                                  amt_gain, "Value", (880.0, -60.0))
+    # 乘数 = blend_to_white(ColorGain, GainStrength)：s=0 → 白(不改动)，s=1 → ColorGain。
+    # 等价于乘性插值 ``1 − s + s×g``，**s=0 时是 1 而不是 0**
+    # （旧写法 ``1 + s×(g−1)`` 在 s=0 时等于 0，会把整条颜色链乘成黑）。
+    #
+    # **颜色来源取上面那个 ADD（``混合.009``）**，它的语义正是
+    # "基色 + 自发光色 × 强度"，强度=0 时恰等于基色本身（不增不减）。
+    #
+    # 早期版本的 ``混合.自发光强度`` 把 A_Color 也接成 ``add_base``，
+    # 于是 ADD 变成 ``基色 + 基色`` = **2×**（EXR 原始缓冲实测 1.0 → 2.0），
+    # 整条链整体过曝两倍。现在 B 只接自发光项，不再重复加入基色。
+    gain_amt = ed.blend_to_white("运算.增益倍率", in_node, "Color Gain",
+                                 in_node, "Gain Strength", (700.0, 140.0))
+    gain_node = ed.color_multiply("增益", add_emis, "Result_Color",
+                                  gain_amt, "Result_Color", (900.0, -60.0))
 
     # ---- 贴图 × 色调（Base Tint）----
-    # 用"拆通道 → Math 相乘 → 合并"实现。
-    # 为什么不用 Mix(MULTIPLY)：实测在节点组内 Mix(MULTIPLY) 于
-    # A=白 / B=目标色 / Factor=1 时会输出**两倍**目标色（红 0.1 → 0.1981），
-    # 同一配置放在材质里却正常 —— 行为随上下文变化，不可依赖。
-    # 色调默认白色 → 等于不改动贴图；设成彩色 → 整体染色。（参考文件没有这一级。）
-    tint_node = ed.color_multiply("色调", in_node, "Base Tint",
-                                  in_node, "Tint Strength", (960.0, 140.0))
+    # 色调是**乘数**：白(1,1,1) = 不改动贴图，彩色 = 整体染色。
+    #
+    # 乘数 = blend_to_white(BaseTint, TintStrength)：s=0 → 白(不改动)、s=1 → BaseTint。
+    # **"色调强度"这道闸必须保留**：``_configure_master_inputs`` 会在基础色为白时
+    # 把强度设成 0、非白时设成 1，用来表达"没设颜色就不染色"。
+    # 若改成"直接乘 BaseTint"、无视强度，那么测试脚本（它们多不设 Tint Strength，
+    # 取默认 0）里基础色仍会生效 → 出现**颜色被算两次**（实测蓝 0.1/0.2/1.0 →
+    # 0.1981/0.3968/1.0）。所以强度必须参与。
+    #
+    # **颜色来源必须是被染色的颜色（增益链输出）**，不能写 `in_node, "Base Tint"`
+    # —— 那等于"用色调乘色调"，会把贴图压成灰/黑，表现为"贴图完全没生效"。
+    tint_amt = ed.blend_to_white("运算.色调倍率", in_node, "Base Tint",
+                                 in_node, "Tint Strength", (900.0, 240.0))
+    tint_node = ed.color_multiply("色调", gain_node, "Result_Color",
+                                  tint_amt, "Result_Color", (1100.0, 140.0))
 
     # ---- Ramp 增益 ----
-    # 同样用 Math 算有效倍率：1 + RampEnable × (RampStrength − 1)。
-    # 没有 Ramp 贴图时 Ramp 结果是白、乘上去会整体提亮，故默认 RampEnable=0（不处理）。
-    amt_ramp = ed.math("运算.Ramp倍率", "MULTIPLY_ADD", (1180.0, -60.0))
-    sub_ramp = ed.math("运算.Ramp差", "SUBTRACT", (1000.0, -60.0))
-    ed.from_in("Ramp Strength", sub_ramp, "Value")
-    ed.value(sub_ramp, "Value_001", 1.0)
-    ed.wire(sub_ramp, "Value", amt_ramp, "Value")
-    ed.from_in("Ramp Enable", amt_ramp, "Value_001")
-    ed.value(amt_ramp, "Value_002", 1.0)
-    ramp_node = ed.color_multiply("Ramp增益", tint_node, "Color",
-                                  amt_ramp, "Value", (1260.0, -60.0))
+    # 同样折成乘数：s=0 → 白(不改动)。
+    # 没有 Ramp 贴图时 Ramp 结果是白、乘上去会整体提亮，故默认 RampEnable=0。
+    ramp_amt = ed.blend_to_white("运算.Ramp倍率", in_node, "Ramp Strength",
+                                 in_node, "Ramp Enable", (1300.0, 240.0))
+    ramp_node = ed.color_multiply("Ramp增益", tint_node, "Result_Color",
+                                  ramp_amt, "Result_Color", (1500.0, 140.0))
 
     # ---- Alpha 级联（参考文件 映射范围.003 → .002 → .001 → ，每级 To Max 取该部位 Alpha）----
     chain = _chain_map_range(ed, "映射范围", (
@@ -1431,8 +1440,14 @@ def build_base_color():
         ed.wire(in_node, "Base Alpha", chain, "To Max")
 
     # BaseColor 的两个输出：第 1 个是 Color、第 2 个是 Alpha(Float)。
-    # 最终取 ``运算.Ramp乘算``（它会按 Ramp 强度返回最终的乘算结果）。
-    ed.wire_to_output(ramp_node, "Color", "Color", occurrence=0)
+    # 最终取 ``ramp_node`` 的颜色输出（它会按 Ramp 强度返回最终的乘算结果）。
+    #
+    # **插槽名必须是 ``Result_Color``**：``ramp_node`` 现在是 Mix 节点
+    # （``color_multiply`` 返回 Mix），它的颜色输出 identifier 是 ``Result_Color``；
+    # Mix 上**没有**叫 ``Color`` 的插槽。写成 ``"Color"`` 时 wire 会静默失败
+    # （只有 ``_failures`` 记录、不抛异常），结果是**组输出 Color 完全没连线**，
+    # 整组恒定输出黑色 —— 表现就是"设了基础色也全黑"。
+    ed.wire_to_output(ramp_node, "Result_Color", "Color", occurrence=0)
     if chain is not None:
         ed.wire_to_output(chain, "Result", "Alpha", occurrence=0)
     return ed.finalize()
@@ -2010,7 +2025,7 @@ def build_master():
                                 m_rim_gate, "Value", (-360.0, -1600.0))
 
     # 运算.023.a = 边缘光整体强度（逐通道乘 Rim Intensity）
-    m_rim_int = ed.color_multiply("边缘光强度", mix_rim, "Color",
+    m_rim_int = ed.color_multiply("边缘光强度", mix_rim, "Result_Color",
                                   in_node, "Rim Intensity", (-60.0, -1700.0))
 
     # ==================================================================================
@@ -2039,7 +2054,7 @@ def build_master():
 
     mix_rim_add = ed.mix("混合.005", blend_type="ADD", location=(560.0, 160.0))
     ed.wire(mix_final_ao, "Result", mix_rim_add, "A_Color")
-    ed.wire(m_rim_int, "Color", mix_rim_add, "B_Color")
+    ed.wire(m_rim_int, "Result_Color", mix_rim_add, "B_Color")
 
     # 最终增益：把**颜色**乘以 Halo Brightness。
     # 用"拆通道 → Math → 合并"实现（Mix(MULTIPLY) 在节点组里实测会输出两倍色；
@@ -2048,7 +2063,7 @@ def build_master():
                                in_node, "Halo Brightness", (740.0, 160.0))
 
     emission = ed.new('ShaderNodeEmission', "自发光", (1180.0, 160.0))
-    ed.wire(m_gain, "Color", emission, "Color")
+    ed.wire(m_gain, "Result_Color", emission, "Color")
     ed.value(emission, "Strength", 1.0)
 
     # Alpha：参考文件的主组只有 Shader 输出；这里额外暴露一个 Float 输出，
@@ -2066,7 +2081,7 @@ def build_master():
 
     # 视口预览用漫射 BSDF（参考文件同样把结果接到 漫射 BSDF）
     diffuse = ed.new('ShaderNodeBsdfDiffuse', "漫射 BSDF", (820.0, -180.0))
-    ed.wire(m_gain, "Color", diffuse, "Color")
+    ed.wire(m_gain, "Result_Color", diffuse, "Color")
     return ed.finalize()
 
 
