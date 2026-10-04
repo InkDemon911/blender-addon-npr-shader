@@ -30,9 +30,15 @@
 
 ## 安装
 
-### 方式 A：手动复制（推荐）
+### 方式 A：下载 Release 里的 zip（最省事）
 
-把 `npr_studio` 整个目录复制到 Blender 的插件目录：
+到 [**Releases**](https://github.com/InkDemon911/blender-addon-npr-shader/releases/latest) 下载
+**`npr_studio-v1.0.0.zip`**，然后
+`编辑 → 偏好设置 → 插件 → 从磁盘安装…` 选择这个 zip 即可。
+
+### 方式 B：手动复制目录
+
+把仓库里的 `npr_studio` 整个目录复制到 Blender 的插件目录：
 
 | 系统 | 路径 |
 |---|---|
@@ -42,14 +48,13 @@
 
 然后 `编辑 → 偏好设置 → 插件`，搜索 **NPR**，勾选 **NPR Studio**。
 
-### 方式 B：打包 zip 安装
+### 方式 C：自己打包 zip
 
 ```bash
-# 在仓库根目录
-zip -r npr_studio.zip npr_studio -x "npr_studio/tools/*" "npr_studio/__pycache__/*"
+git archive --format=zip --prefix=npr_studio/ -o npr_studio.zip HEAD:npr_studio
 ```
 
-然后 `编辑 → 偏好设置 → 插件 → 从磁盘安装…` 选择这个 zip。
+顶层必须是 `npr_studio/`，否则 Blender 认不出这是插件包。
 
 ### 启用后
 
