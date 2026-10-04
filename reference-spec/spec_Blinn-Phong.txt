@@ -1,0 +1,72 @@
+########################################################################################################
+# GROUP 'Blinn-Phong'   users=1   nodes=11   links=15
+########################################################################################################
+## INTERFACE
+   OUTPUT NodeSocketFloat    Blinn-Phong                        default=0
+   INPUT  NodeSocketFloat    Face                               default=0
+   INPUT  NodeSocketFloat    Body01                             default=0
+   INPUT  NodeSocketFloat    Body                               default=0
+   INPUT  NodeSocketFloat    Hair                               default=0
+   INPUT  NodeSocketFloat    Eyes                               default=0
+   INPUT  NodeSocketFloat    Gloss                              default=0
+
+## NODES
+
+  [群组.008] <Group >>GROUP:'Camera Vecter'>
+       out Vector        (id=Socket_0      ) => 矢量运算.008.Vector
+
+  [Light Vecter] <Group >>GROUP:'Light Vecter'>
+       out Vector        (id=Socket_0      ) => 矢量运算.008.Vector
+
+  [矢量运算.008] <VectorMath>
+       props: operation=ADD
+       in  Vector        (id=Vector        ) <= 群组.008.Vector
+       in  Vector        (id=Vector_001    ) <= Light Vecter.Vector
+       out Vector        (id=Vector        ) => 矢量运算.009.Vector
+
+  [矢量运算.009] <VectorMath>
+       props: operation=NORMALIZE
+       in  Vector        (id=Vector        ) <= 矢量运算.008.Vector
+       out Vector        (id=Vector        ) => 矢量运算.010.Vector
+
+  [矢量运算.010] <VectorMath>
+       props: operation=DOT_PRODUCT
+       in  Vector        (id=Vector        ) <= 矢量运算.009.Vector
+       in  Vector        (id=Vector_001    ) <= 群组.009.Normal
+       out Value         (id=Value         ) => 运算.006.Value
+
+  [节点组.001] <Group >>GROUP:'Normalmap'>
+       in  Face          (id=Socket_1      ) <= 组输入.Face
+       in  Body01        (id=Socket_2      ) <= 组输入.Body01
+       in  Body          (id=Socket_3      ) <= 组输入.Body
+       in  Hair          (id=Socket_4      ) <= 组输入.Hair
+       in  Eyes          (id=Socket_5      ) <= 组输入.Eyes
+       out Normol Map    (id=Socket_0      ) => 群组.009.Normal
+
+  [运算.007] <Math>
+       props: operation=POWER
+       in  Value         (id=Value         ) <= 运算.006.Value
+       in  Value         (id=Value_001     ) <= 组输入.Gloss
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 组输出.Blinn-Phong
+
+  [群组.009] <Group >>GROUP:'Normalmap Decode'>
+       in  Normal        (id=Socket_0      ) <= 节点组.001.Normol Map
+       out Normal        (id=Socket_4      ) => 矢量运算.010.Vector
+
+  [运算.006] <Math>
+       props: operation=MAXIMUM
+       in  Value         (id=Value         ) <= 矢量运算.010.Value
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.007.Value
+
+  [组输出] <GroupOutput>
+       in  Blinn-Phong   (id=Socket_5      ) <= 运算.007.Value
+
+  [组输入] <GroupInput>
+       out Face          (id=Socket_0      ) => 节点组.001.Face
+       out Body01        (id=Socket_1      ) => 节点组.001.Body01
+       out Body          (id=Socket_2      ) => 节点组.001.Body
+       out Hair          (id=Socket_3      ) => 节点组.001.Hair
+       out Eyes          (id=Socket_4      ) => 节点组.001.Eyes
+       out Gloss         (id=Socket_6      ) => 运算.007.Value

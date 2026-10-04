@@ -1,0 +1,69 @@
+################################################################################################
+# GROUP 'SmoothStep'   users=3  nodes=9 links=12
+################################################################################################
+GROUP INTERFACE:
+   OUTPUT NodeSocketFloat    Value                              default=0
+   INPUT  NodeSocketFloat    t1                                 default=0
+   INPUT  NodeSocketFloat    t2                                 default=0
+   INPUT  NodeSocketFloat    x                                  default=0
+
+NODES (with live wiring):
+
+  NODE '组输入'  (NodeGroupInput)
+      OUT t1                         => 运算.Value , 运算.001.Value
+      OUT t2                         => 运算.001.Value
+      OUT x                          => 运算.Value
+
+  NODE '组输出'  (NodeGroupOutput)
+      props: is_active_output=True
+      IN  Value                      <= 运算.006.Value
+      IN                             =  -
+
+  NODE '运算'  (ShaderNodeMath)
+      props: operation=SUBTRACT
+      IN  Value                      <= 组输入.x , 组输入.t1
+      IN  Value                      <= 组输入.x , 组输入.t1
+      IN  Value                      <= 组输入.x , 组输入.t1
+      OUT Value                      => 运算.002.Value
+
+  NODE '运算.001'  (ShaderNodeMath)
+      props: operation=SUBTRACT
+      IN  Value                      <= 组输入.t2 , 组输入.t1
+      IN  Value                      <= 组输入.t2 , 组输入.t1
+      IN  Value                      <= 组输入.t2 , 组输入.t1
+      OUT Value                      => 运算.002.Value
+
+  NODE '运算.002'  (ShaderNodeMath)
+      props: operation=DIVIDE  use_clamp=True
+      IN  Value                      <= 运算.Value , 运算.001.Value
+      IN  Value                      <= 运算.Value , 运算.001.Value
+      IN  Value                      <= 运算.Value , 运算.001.Value
+      OUT Value                      => 运算.003.Value , 运算.004.Value
+
+  NODE '运算.003'  (ShaderNodeMath)
+      props: operation=POWER
+      IN  Value                      <= 运算.002.Value
+      IN  Value                      <= 运算.002.Value
+      IN  Value                      <= 运算.002.Value
+      OUT Value                      => 运算.006.Value
+
+  NODE '运算.004'  (ShaderNodeMath)
+      props: operation=MULTIPLY
+      IN  Value                      <= 运算.002.Value
+      IN  Value                      <= 运算.002.Value
+      IN  Value                      <= 运算.002.Value
+      OUT Value                      => 运算.005.Value
+
+  NODE '运算.005'  (ShaderNodeMath)
+      props: operation=SUBTRACT
+      IN  Value                      <= 运算.004.Value
+      IN  Value                      <= 运算.004.Value
+      IN  Value                      <= 运算.004.Value
+      OUT Value                      => 运算.006.Value
+
+  NODE '运算.006'  (ShaderNodeMath)
+      props: operation=MULTIPLY  use_clamp=True
+      IN  Value                      <= 运算.003.Value , 运算.005.Value
+      IN  Value                      <= 运算.003.Value , 运算.005.Value
+      IN  Value                      <= 运算.003.Value , 运算.005.Value
+      OUT Value                      => 组输出.Value

@@ -1,0 +1,22 @@
+########################################################################################################
+# GROUP 'LightmapSmoothStep'   users=1   nodes=3   links=3
+########################################################################################################
+## INTERFACE
+   OUTPUT NodeSocketFloat    Lightmap.g                         default=0
+   OUTPUT NodeSocketFloat    Smoothstep(0.2,0.3,Lightmap.g)     default=0
+   INPUT  NodeSocketFloat    Lightmap.g                         default=0
+
+## NODES
+
+  [组输入] <GroupInput>
+       out Lightmap.g    (id=Socket_0      ) => 组输出.Lightmap.g , Smoothstep.x
+
+  [组输出] <GroupOutput>
+       in  Lightmap.g    (id=Socket_1      ) <= 组输入.Lightmap.g
+       in  Smoothstep(0.2,0.3,Lightmap.g)(id=Socket_2      ) <= Smoothstep.Value
+
+  [Smoothstep] <Group >>GROUP:'SmoothStep'>
+       in  t1            (id=Socket_0      ) =  0.2
+       in  t2            (id=Socket_1      ) =  0.3
+       in  x             (id=Socket_2      ) <= 组输入.Lightmap.g
+       out Value         (id=Socket_3      ) => 组输出.Smoothstep(0.2,0.3,Lightmap.g)

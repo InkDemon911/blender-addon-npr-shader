@@ -1,0 +1,67 @@
+########################################################################################################
+# GROUP 'SmoothStep'   users=3   nodes=9   links=12
+########################################################################################################
+## INTERFACE
+   OUTPUT NodeSocketFloat    Value                              default=0
+   INPUT  NodeSocketFloat    t1                                 default=0
+   INPUT  NodeSocketFloat    t2                                 default=0
+   INPUT  NodeSocketFloat    x                                  default=0
+
+## NODES
+
+  [组输入] <GroupInput>
+       out t1            (id=Socket_0      ) => 运算.Value , 运算.001.Value
+       out t2            (id=Socket_1      ) => 运算.001.Value
+       out x             (id=Socket_2      ) => 运算.Value
+
+  [组输出] <GroupOutput>
+       in  Value         (id=Socket_3      ) <= 运算.006.Value
+
+  [运算] <Math>
+       props: operation=SUBTRACT
+       in  Value         (id=Value         ) <= 组输入.x
+       in  Value         (id=Value_001     ) <= 组输入.t1
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.002.Value
+
+  [运算.001] <Math>
+       props: operation=SUBTRACT
+       in  Value         (id=Value         ) <= 组输入.t2
+       in  Value         (id=Value_001     ) <= 组输入.t1
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.002.Value
+
+  [运算.002] <Math>
+       props: operation=DIVIDE  use_clamp=True
+       in  Value         (id=Value         ) <= 运算.Value
+       in  Value         (id=Value_001     ) <= 运算.001.Value
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.003.Value , 运算.004.Value
+
+  [运算.003] <Math>
+       props: operation=POWER
+       in  Value         (id=Value         ) <= 运算.002.Value
+       in  Value         (id=Value_001     ) =  2
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.006.Value
+
+  [运算.004] <Math>
+       props: operation=MULTIPLY
+       in  Value         (id=Value         ) <= 运算.002.Value
+       in  Value         (id=Value_001     ) =  2
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.005.Value
+
+  [运算.005] <Math>
+       props: operation=SUBTRACT
+       in  Value         (id=Value         ) =  3
+       in  Value         (id=Value_001     ) <= 运算.004.Value
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.006.Value
+
+  [运算.006] <Math>
+       props: operation=MULTIPLY  use_clamp=True
+       in  Value         (id=Value         ) <= 运算.003.Value
+       in  Value         (id=Value_001     ) <= 运算.005.Value
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 组输出.Value

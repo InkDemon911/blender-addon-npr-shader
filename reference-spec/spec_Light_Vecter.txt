@@ -1,0 +1,28 @@
+########################################################################################################
+# GROUP 'Light Vecter'   users=4   nodes=5   links=3
+########################################################################################################
+## INTERFACE
+   OUTPUT NodeSocketVector   Vector                             default=(0, 0, 0)
+
+## NODES
+
+  [合并 XYZ.001] <CombineXYZ>
+       out Vector        (id=Vector        ) => 矢量旋转.Vector
+
+  [矢量旋转] <VectorRotate>
+       props: rotation_type=EULER_XYZ
+       in  Vector        (id=Vector        ) <= 合并 XYZ.001.Vector
+       in  Axis          (id=Axis          ) =  (0, 0, 1)
+       in  Rotation      (id=Rotation      ) <= 合并 XYZ.Vector
+       out Vector        (id=Vector        ) => 组输出.Vector
+
+  [合并 XYZ] <CombineXYZ>
+       in  X             (id=X             ) =  -0.341767
+       in  Y             (id=Y             ) =  0.670787
+       in  Z             (id=Z             ) =  -140.365
+       out Vector        (id=Vector        ) => 矢量旋转.Rotation
+
+  [组输出] <GroupOutput>
+       in  Vector        (id=Socket_0      ) <= 矢量旋转.Vector
+
+  [组输入] <GroupInput>

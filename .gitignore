@@ -1,0 +1,36 @@
+# ---- Blender 产物 ----
+*.blend
+*.blend1
+*.blend2
+*.blend[0-9]
+*.blend[0-9][0-9]
+__pycache__/
+*.py[cod]
+*.pyo
+
+# ---- 渲染输出 / 临时文件 ----
+render_out/
+*.log
+tmp/
+temp/
+_install_stage/
+_release/
+*.png
+*.jpg
+*.jpeg
+!docs/**/*.png
+
+# ---- 参考素材（第三方版权，刻意不入库） ----
+# OdetteV3.blend 是第三方卡通角色的模型与贴图，
+# 版权归原作者所有，本项目不再分发。
+npr-ref/OdetteV3.blend
+npr-ref/dump/
+reference/OdetteV3.blend
+
+# ---- 编辑器 / 系统 ----
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,58 @@
+########################################################################################################
+# GROUP 'Ramp条数'   users=5   nodes=8   links=8
+########################################################################################################
+## INTERFACE
+   OUTPUT NodeSocketFloat    Value                              default=0
+   INPUT  NodeSocketFloat    Value                              default=0
+
+## NODES
+
+  [运算] <Math>
+       props: operation=MULTIPLY
+       in  Value         (id=Value         ) <= 组输入.Value
+       in  Value         (id=Value_001     ) =  -0.1
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.005.Value
+
+  [运算.005] <Math>
+       props: operation=ADD
+       in  Value         (id=Value         ) <= 运算.Value
+       in  Value         (id=Value_001     ) =  1.05
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 混合.A
+
+  [组输出] <GroupOutput>
+       in  Value         (id=Socket_1      ) <= 混合.Result
+
+  [组输入] <GroupInput>
+       out Value         (id=Socket_0      ) => 运算.Value , 运算.001.Value
+
+  [运算.001] <Math>
+       props: operation=MULTIPLY
+       in  Value         (id=Value         ) <= 组输入.Value
+       in  Value         (id=Value_001     ) =  -0.1
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.006.Value
+
+  [运算.006] <Math>
+       props: operation=ADD
+       in  Value         (id=Value         ) <= 运算.001.Value
+       in  Value         (id=Value_001     ) =  1.05
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.002.Value
+
+  [运算.002] <Math>
+       props: operation=SUBTRACT
+       in  Value         (id=Value         ) <= 运算.006.Value
+       in  Value         (id=Value_001     ) =  0.5
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 混合.B
+
+  [混合] <Mix>
+       props: data_type=FLOAT  factor_mode=UNIFORM  blend_type=COLOR  clamp_factor=True
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  A             (id=A_Float       ) <= 运算.005.Value
+       in  B             (id=B_Float       ) <= 运算.002.Value
+       in  A             (id=A_Color       ) =  (0.5, 0.5, 0.5, 1)
+       in  B             (id=B_Color       ) =  (0.5, 0.5, 0.5, 1)
+       out Result        (id=Result_Float  ) => 组输出.Value

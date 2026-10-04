@@ -1,0 +1,93 @@
+################################################################################################
+# GROUP 'Normalmap Decode'   users=4  nodes=13 links=15
+################################################################################################
+GROUP INTERFACE:
+   OUTPUT NodeSocketVector   Normal                             default=(0, 0, 0)
+   INPUT  NodeSocketFloat    Normal                             default=0
+
+NODES (with live wiring):
+
+  NODE '组输入'  (NodeGroupInput)
+      OUT Normal                     => 矢量运算.Vector
+
+  NODE '组输出'  (NodeGroupOutput)
+      props: is_active_output=True
+      IN  Normal                     <= 法线贴图.Normal
+      IN                             =  -
+
+  NODE '分离 XYZ'  (ShaderNodeSeparateXYZ)
+      IN  Vector                     <= 矢量运算.Vector
+      OUT X                          => 运算.Value , 合并 XYZ.X
+      OUT Y                          => 运算.001.Value , 合并 XYZ.Y
+
+  NODE '矢量运算'  (ShaderNodeVectorMath)
+      props: operation=MULTIPLY_ADD
+      IN  Vector                     <= 组输入.Normal
+      IN  Vector                     <= 组输入.Normal
+      IN  Vector                     <= 组输入.Normal
+      IN  Scale                      =  1
+      OUT Vector                     => 分离 XYZ.Vector
+
+  NODE '运算'  (ShaderNodeMath)
+      props: operation=POWER
+      IN  Value                      <= 分离 XYZ.X
+      IN  Value                      <= 分离 XYZ.X
+      IN  Value                      <= 分离 XYZ.X
+      OUT Value                      => 运算.002.Value
+
+  NODE '运算.001'  (ShaderNodeMath)
+      props: operation=POWER
+      IN  Value                      <= 分离 XYZ.Y
+      IN  Value                      <= 分离 XYZ.Y
+      IN  Value                      <= 分离 XYZ.Y
+      OUT Value                      => 运算.002.Value
+
+  NODE '运算.002'  (ShaderNodeMath)
+      props: operation=ADD
+      IN  Value                      <= 运算.Value , 运算.001.Value
+      IN  Value                      <= 运算.Value , 运算.001.Value
+      IN  Value                      <= 运算.Value , 运算.001.Value
+      OUT Value                      => 运算.003.Value
+
+  NODE '运算.003'  (ShaderNodeMath)
+      props: operation=MINIMUM
+      IN  Value                      <= 运算.002.Value
+      IN  Value                      <= 运算.002.Value
+      IN  Value                      <= 运算.002.Value
+      OUT Value                      => 运算.004.Value
+
+  NODE '运算.004'  (ShaderNodeMath)
+      props: operation=SUBTRACT
+      IN  Value                      <= 运算.003.Value
+      IN  Value                      <= 运算.003.Value
+      IN  Value                      <= 运算.003.Value
+      OUT Value                      => 运算.005.Value
+
+  NODE '运算.005'  (ShaderNodeMath)
+      props: operation=SQRT
+      IN  Value                      <= 运算.004.Value
+      IN  Value                      <= 运算.004.Value
+      IN  Value                      <= 运算.004.Value
+      OUT Value                      => 合并 XYZ.Z
+
+  NODE '合并 XYZ'  (ShaderNodeCombineXYZ)
+      IN  X                          <= 分离 XYZ.X
+      IN  Y                          <= 分离 XYZ.Y
+      IN  Z                          <= 运算.005.Value
+      OUT Vector                     => 矢量运算.001.Vector
+
+  NODE '矢量运算.001'  (ShaderNodeVectorMath)
+      props: operation=MULTIPLY_ADD
+      IN  Vector                     <= 合并 XYZ.Vector
+      IN  Vector                     <= 合并 XYZ.Vector
+      IN  Vector                     <= 合并 XYZ.Vector
+      IN  Scale                      =  1
+      OUT Vector                     => 法线贴图.Color
+
+  NODE '法线贴图'  (ShaderNodeNormalMap)
+      props: base=DISPLACED  convention=OPENGL  space=TANGENT
+      IN  Strength                   =  1
+      IN  Color                      <= 矢量运算.001.Vector
+      OUT Normal                     => 组输出.Normal
+      ALLIN  Strength | Color
+      ALLOUT Normal

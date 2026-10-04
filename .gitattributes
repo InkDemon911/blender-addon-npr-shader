@@ -1,0 +1,19 @@
+# 统一换行符：仓库内一律 LF，检出时按平台自动转换。
+# 这样在 Windows 上开发、在 Linux/macOS 上使用都不会出现整文件 diff。
+* text=auto eol=lf
+
+# 明确的文本类型
+*.py    text eol=lf
+*.md    text eol=lf
+*.txt   text eol=lf
+*.json  text eol=lf
+*.toml  text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+
+# 二进制（避免 Git 尝试合并/转换）
+*.blend  binary
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.zip    binary

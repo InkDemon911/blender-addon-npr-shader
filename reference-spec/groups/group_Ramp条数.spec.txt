@@ -1,0 +1,68 @@
+################################################################################################
+# GROUP 'Ramp条数'   users=5  nodes=8 links=8
+################################################################################################
+GROUP INTERFACE:
+   OUTPUT NodeSocketFloat    Value                              default=0
+   INPUT  NodeSocketFloat    Value                              default=0
+
+NODES (with live wiring):
+
+  NODE '运算'  (ShaderNodeMath)
+      props: operation=MULTIPLY
+      IN  Value                      <= 组输入.Value
+      IN  Value                      <= 组输入.Value
+      IN  Value                      <= 组输入.Value
+      OUT Value                      => 运算.005.Value
+
+  NODE '运算.005'  (ShaderNodeMath)
+      props: operation=ADD
+      IN  Value                      <= 运算.Value
+      IN  Value                      <= 运算.Value
+      IN  Value                      <= 运算.Value
+      OUT Value                      => 混合.A
+
+  NODE '组输出'  (NodeGroupOutput)
+      props: is_active_output=True
+      IN  Value                      <= 混合.Result
+      IN                             =  -
+
+  NODE '组输入'  (NodeGroupInput)
+      OUT Value                      => 运算.Value , 运算.001.Value
+
+  NODE '运算.001'  (ShaderNodeMath)
+      props: operation=MULTIPLY
+      IN  Value                      <= 组输入.Value
+      IN  Value                      <= 组输入.Value
+      IN  Value                      <= 组输入.Value
+      OUT Value                      => 运算.006.Value
+
+  NODE '运算.006'  (ShaderNodeMath)
+      props: operation=ADD
+      IN  Value                      <= 运算.001.Value
+      IN  Value                      <= 运算.001.Value
+      IN  Value                      <= 运算.001.Value
+      OUT Value                      => 运算.002.Value
+
+  NODE '运算.002'  (ShaderNodeMath)
+      props: operation=SUBTRACT
+      IN  Value                      <= 运算.006.Value
+      IN  Value                      <= 运算.006.Value
+      IN  Value                      <= 运算.006.Value
+      OUT Value                      => 混合.B
+
+  NODE '混合'  (ShaderNodeMix)
+      props: blend_type=COLOR  clamp_factor=True  data_type=FLOAT  factor_mode=UNIFORM
+      IN  Factor                     =  1
+      IN  Factor                     =  (0.5, 0.5, 0.5)
+      IN  A                          <= 运算.005.Value
+      IN  B                          <= 运算.002.Value
+      IN  A                          <= 运算.005.Value
+      IN  B                          <= 运算.002.Value
+      IN  A                          <= 运算.005.Value
+      IN  B                          <= 运算.002.Value
+      IN  A                          <= 运算.005.Value
+      IN  B                          <= 运算.002.Value
+      OUT Result                     => 组输出.Value
+      OUT Result                     => 组输出.Value
+      OUT Result                     => 组输出.Value
+      OUT Result                     => 组输出.Value

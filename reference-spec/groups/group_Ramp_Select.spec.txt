@@ -1,0 +1,147 @@
+################################################################################################
+# GROUP 'Ramp Select'   users=1  nodes=16 links=22
+################################################################################################
+GROUP INTERFACE:
+   OUTPUT NodeSocketFloat    RampV                              default=0
+   INPUT  NodeSocketFloat    Mask                               default=0
+   INPUT  NodeSocketFloat    A0                                 default=0
+   INPUT  NodeSocketFloat    A1                                 default=0
+   INPUT  NodeSocketFloat    A2                                 default=0
+   INPUT  NodeSocketFloat    A3                                 default=0
+   INPUT  NodeSocketFloat    A4                                 default=0
+
+NODES (with live wiring):
+
+  NODE '组输入'  (NodeGroupInput)
+      OUT Mask                       => A2.Value , 运算.011.Value , 运算.012.Value , 运算.013.Value
+      OUT A0                         => Ramp条数.Value
+      OUT A1                         => Ramp条数.001.Value
+      OUT A2                         => Ramp条数.002.Value
+      OUT A3                         => Ramp条数.003.Value
+      OUT A4                         => Ramp条数.004.Value
+
+  NODE '组输出'  (NodeGroupOutput)
+      props: is_active_output=True
+      IN  RampV                      <= 混合.004.Result
+      IN                             =  -
+
+  NODE 'A2'  (ShaderNodeMath  label='A5'  [frame:帧.001])
+      props: operation=GREATER_THAN  use_clamp=True
+      IN  Value                      <= 组输入.Mask
+      IN  Value                      <= 组输入.Mask
+      IN  Value                      <= 组输入.Mask
+      OUT Value                      => 混合.004.Factor
+
+  NODE '运算.011'  (ShaderNodeMath  label='A4'  [frame:帧.001])
+      props: operation=GREATER_THAN  use_clamp=True
+      IN  Value                      <= 组输入.Mask
+      IN  Value                      <= 组输入.Mask
+      IN  Value                      <= 组输入.Mask
+      OUT Value                      => 混合.003.Factor
+
+  NODE '运算.012'  (ShaderNodeMath  label='A3'  [frame:帧.001])
+      props: operation=GREATER_THAN  use_clamp=True
+      IN  Value                      <= 组输入.Mask
+      IN  Value                      <= 组输入.Mask
+      IN  Value                      <= 组输入.Mask
+      OUT Value                      => 混合.002.Factor
+
+  NODE '运算.013'  (ShaderNodeMath  label='A2'  [frame:帧.001])
+      props: operation=GREATER_THAN  use_clamp=True
+      IN  Value                      <= 组输入.Mask
+      IN  Value                      <= 组输入.Mask
+      IN  Value                      <= 组输入.Mask
+      OUT Value                      => 混合.001.Factor
+
+  NODE '帧.001'  (NodeFrame)
+      props: label_size=20  shrink=True
+      ALLIN  
+      ALLOUT 
+
+  NODE 'Ramp条数'  (ShaderNodeGroup  >>GROUP:Ramp条数  label='A0')
+      IN  Value                      <= 组输入.A0
+      OUT Value                      => 混合.001.A
+
+  NODE 'Ramp条数.001'  (ShaderNodeGroup  >>GROUP:Ramp条数  label='A1')
+      IN  Value                      <= 组输入.A1
+      OUT Value                      => 混合.001.B
+
+  NODE 'Ramp条数.002'  (ShaderNodeGroup  >>GROUP:Ramp条数  label='A2')
+      IN  Value                      <= 组输入.A2
+      OUT Value                      => 混合.002.B
+
+  NODE 'Ramp条数.003'  (ShaderNodeGroup  >>GROUP:Ramp条数  label='A3')
+      IN  Value                      <= 组输入.A3
+      OUT Value                      => 混合.003.B
+
+  NODE 'Ramp条数.004'  (ShaderNodeGroup  >>GROUP:Ramp条数  label='A4')
+      IN  Value                      <= 组输入.A4
+      OUT Value                      => 混合.004.B
+
+  NODE '混合.001'  (ShaderNodeMix)
+      props: blend_type=MIX  clamp_factor=True  data_type=FLOAT  factor_mode=UNIFORM
+      IN  Factor                     <= 运算.013.Value
+      IN  Factor                     <= 运算.013.Value
+      IN  A                          <= Ramp条数.Value
+      IN  B                          <= Ramp条数.001.Value
+      IN  A                          <= Ramp条数.Value
+      IN  B                          <= Ramp条数.001.Value
+      IN  A                          <= Ramp条数.Value
+      IN  B                          <= Ramp条数.001.Value
+      IN  A                          <= Ramp条数.Value
+      IN  B                          <= Ramp条数.001.Value
+      OUT Result                     => 混合.002.A
+      OUT Result                     => 混合.002.A
+      OUT Result                     => 混合.002.A
+      OUT Result                     => 混合.002.A
+
+  NODE '混合.002'  (ShaderNodeMix)
+      props: blend_type=MIX  clamp_factor=True  data_type=FLOAT  factor_mode=UNIFORM
+      IN  Factor                     <= 运算.012.Value
+      IN  Factor                     <= 运算.012.Value
+      IN  A                          <= 混合.001.Result
+      IN  B                          <= Ramp条数.002.Value
+      IN  A                          <= 混合.001.Result
+      IN  B                          <= Ramp条数.002.Value
+      IN  A                          <= 混合.001.Result
+      IN  B                          <= Ramp条数.002.Value
+      IN  A                          <= 混合.001.Result
+      IN  B                          <= Ramp条数.002.Value
+      OUT Result                     => 混合.003.A
+      OUT Result                     => 混合.003.A
+      OUT Result                     => 混合.003.A
+      OUT Result                     => 混合.003.A
+
+  NODE '混合.003'  (ShaderNodeMix)
+      props: blend_type=MIX  clamp_factor=True  data_type=FLOAT  factor_mode=UNIFORM
+      IN  Factor                     <= 运算.011.Value
+      IN  Factor                     <= 运算.011.Value
+      IN  A                          <= 混合.002.Result
+      IN  B                          <= Ramp条数.003.Value
+      IN  A                          <= 混合.002.Result
+      IN  B                          <= Ramp条数.003.Value
+      IN  A                          <= 混合.002.Result
+      IN  B                          <= Ramp条数.003.Value
+      IN  A                          <= 混合.002.Result
+      IN  B                          <= Ramp条数.003.Value
+      OUT Result                     => 混合.004.A
+      OUT Result                     => 混合.004.A
+      OUT Result                     => 混合.004.A
+      OUT Result                     => 混合.004.A
+
+  NODE '混合.004'  (ShaderNodeMix)
+      props: blend_type=MIX  clamp_factor=True  data_type=FLOAT  factor_mode=UNIFORM
+      IN  Factor                     <= A2.Value
+      IN  Factor                     <= A2.Value
+      IN  A                          <= 混合.003.Result
+      IN  B                          <= Ramp条数.004.Value
+      IN  A                          <= 混合.003.Result
+      IN  B                          <= Ramp条数.004.Value
+      IN  A                          <= 混合.003.Result
+      IN  B                          <= Ramp条数.004.Value
+      IN  A                          <= 混合.003.Result
+      IN  B                          <= Ramp条数.004.Value
+      OUT Result                     => 组输出.RampV
+      OUT Result                     => 组输出.RampV
+      OUT Result                     => 组输出.RampV
+      OUT Result                     => 组输出.RampV

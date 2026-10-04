@@ -1,0 +1,70 @@
+########################################################################################################
+# GROUP 'Lambert'   users=2   nodes=9   links=13
+########################################################################################################
+## INTERFACE
+   OUTPUT NodeSocketFloat    NoL                                default=0
+   OUTPUT NodeSocketFloat    Max(0,NoL)                         default=0
+   OUTPUT NodeSocketFloat    Pow(NoL*0.5+0.5,2)                 default=0
+   OUTPUT NodeSocketFloat    Pow(MAx(0,NoL)*0.5+0.5,2)          default=0
+   OUTPUT NodeSocketFloat    NoL*0.5+0.5                        default=0
+   OUTPUT NodeSocketFloat    Smoothstepk(0,0.14,NoL+0.5)        default=0
+   INPUT  NodeSocketFloat    NoL                                default=0
+
+## NODES
+
+  [组输入] <GroupInput>
+       out NoL           (id=Socket_0      ) => 组输出.NoL , 运算.Value , 运算.001.Value , 运算.005.Value
+
+  [组输出] <GroupOutput>
+       in  NoL           (id=Socket_1      ) <= 组输入.NoL
+       in  Max(0,NoL)    (id=Socket_3      ) <= 运算.Value
+       in  Pow(NoL*0.5+0.5,2)(id=Socket_4      ) <= 运算.002.Value
+       in  Pow(MAx(0,NoL)*0.5+0.5,2)(id=Socket_5      ) <= 运算.004.Value
+       in  NoL*0.5+0.5   (id=Socket_6      ) <= 运算.001.Value
+       in  Smoothstepk(0,0.14,NoL+0.5)(id=Socket_7      ) <= Smoothstep.Value
+
+  [运算] <Math>
+       props: operation=MAXIMUM
+       in  Value         (id=Value         ) <= 组输入.NoL
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 组输出.Max(0,NoL) , 运算.003.Value
+
+  [运算.001] <Math>
+       props: operation=MULTIPLY_ADD
+       in  Value         (id=Value         ) <= 组输入.NoL
+       in  Value         (id=Value_001     ) =  0.5
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.002.Value , 组输出.NoL*0.5+0.5
+
+  [运算.002] <Math>
+       props: operation=POWER
+       in  Value         (id=Value         ) <= 运算.001.Value
+       in  Value         (id=Value_001     ) =  2
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 组输出.Pow(NoL*0.5+0.5,2)
+
+  [运算.003] <Math>
+       props: operation=MULTIPLY_ADD
+       in  Value         (id=Value         ) <= 运算.Value
+       in  Value         (id=Value_001     ) =  0.5
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.004.Value
+
+  [运算.004] <Math>
+       props: operation=POWER
+       in  Value         (id=Value         ) <= 运算.003.Value
+       in  Value         (id=Value_001     ) =  2
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 组输出.Pow(MAx(0,NoL)*0.5+0.5,2)
+
+  [Smoothstep] <Group >>GROUP:'SmoothStep'>
+       in  t2            (id=Socket_1      ) =  1.14
+       in  x             (id=Socket_2      ) <= 运算.005.Value
+       out Value         (id=Socket_3      ) => 组输出.Smoothstepk(0,0.14,NoL+0.5)
+
+  [运算.005] <Math>
+       props: operation=ADD
+       in  Value         (id=Value         ) <= 组输入.NoL
+       in  Value         (id=Value_001     ) =  0.5
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => Smoothstep.x

@@ -1,0 +1,24 @@
+################################################################################################
+# GROUP 'LightmapSmoothStep'   users=1  nodes=3 links=3
+################################################################################################
+GROUP INTERFACE:
+   OUTPUT NodeSocketFloat    Lightmap.g                         default=0
+   OUTPUT NodeSocketFloat    Smoothstep(0.2,0.3,Lightmap.g)     default=0
+   INPUT  NodeSocketFloat    Lightmap.g                         default=0
+
+NODES (with live wiring):
+
+  NODE '组输入'  (NodeGroupInput)
+      OUT Lightmap.g                 => 组输出.Lightmap.g , Smoothstep.x
+
+  NODE '组输出'  (NodeGroupOutput)
+      props: is_active_output=True
+      IN  Lightmap.g                 <= 组输入.Lightmap.g
+      IN  Smoothstep(0.2,0.3,Lightmap.g) <= Smoothstep.Value
+      IN                             =  -
+
+  NODE 'Smoothstep'  (ShaderNodeGroup  >>GROUP:SmoothStep)
+      IN  t1                         =  0.2
+      IN  t2                         =  0.3
+      IN  x                          <= 组输入.Lightmap.g
+      OUT Value                      => 组输出.Smoothstep(0.2,0.3,Lightmap.g)

@@ -1,0 +1,85 @@
+################################################################################################
+# GROUP 'NodeGroup'   users=2  nodes=9 links=7
+################################################################################################
+GROUP INTERFACE:
+   OUTPUT NodeSocketColor    Result                             default=(0.8, 0.8, 0.8, 1)
+
+NODES (with live wiring):
+
+  NODE '图像纹理.008'  (ShaderNodeTexImage  label='Body01')
+      props: extension=REPEAT  interpolation=Linear  projection=FLAT
+      IN  Vector                     =  (0, 0, 0)
+      OUT Color                      => 混合.001.B
+
+  NODE '图像纹理.009'  (ShaderNodeTexImage  label='Body01')
+      props: extension=REPEAT  interpolation=Linear  projection=FLAT
+      IN  Vector                     =  (0, 0, 0)
+      OUT Color                      => 混合.B
+
+  NODE '图像纹理.010'  (ShaderNodeTexImage  label='Body01')
+      props: extension=REPEAT  interpolation=Linear  projection=FLAT
+      IN  Vector                     =  (0, 0, 0)
+      OUT Color                      => 混合.A
+
+  NODE '图像纹理.011'  (ShaderNodeTexImage  label='Body01')
+      props: extension=REPEAT  interpolation=Linear  projection=FLAT
+      IN  Vector                     =  (0, 0, 0)
+      OUT Color                      => 混合.002.B
+
+  NODE '组输出'  (NodeGroupOutput)
+      props: is_active_output=True
+      IN  Result                     <= 混合.002.Result
+      IN                             =  -
+
+  NODE '组输入'  (NodeGroupInput)
+
+  NODE '混合'  (ShaderNodeMix)
+      props: blend_type=ADD  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     =  1
+      IN  Factor                     =  (0.5, 0.5, 0.5)
+      IN  A                          <= 图像纹理.010.Color
+      IN  B                          <= 图像纹理.009.Color
+      IN  A                          <= 图像纹理.010.Color
+      IN  B                          <= 图像纹理.009.Color
+      IN  A                          <= 图像纹理.010.Color
+      IN  B                          <= 图像纹理.009.Color
+      IN  A                          <= 图像纹理.010.Color
+      IN  B                          <= 图像纹理.009.Color
+      OUT Result                     => 混合.001.A
+      OUT Result                     => 混合.001.A
+      OUT Result                     => 混合.001.A
+      OUT Result                     => 混合.001.A
+
+  NODE '混合.001'  (ShaderNodeMix)
+      props: blend_type=ADD  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     =  1
+      IN  Factor                     =  (0.5, 0.5, 0.5)
+      IN  A                          <= 混合.Result
+      IN  B                          <= 图像纹理.008.Color
+      IN  A                          <= 混合.Result
+      IN  B                          <= 图像纹理.008.Color
+      IN  A                          <= 混合.Result
+      IN  B                          <= 图像纹理.008.Color
+      IN  A                          <= 混合.Result
+      IN  B                          <= 图像纹理.008.Color
+      OUT Result                     => 混合.002.A
+      OUT Result                     => 混合.002.A
+      OUT Result                     => 混合.002.A
+      OUT Result                     => 混合.002.A
+
+  NODE '混合.002'  (ShaderNodeMix)
+      props: blend_type=ADD  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     =  1
+      IN  Factor                     =  (0.5, 0.5, 0.5)
+      IN  A                          <= 混合.001.Result
+      IN  B                          <= 图像纹理.011.Color
+      IN  A                          <= 混合.001.Result
+      IN  B                          <= 图像纹理.011.Color
+      IN  A                          <= 混合.001.Result
+      IN  B                          <= 图像纹理.011.Color
+      IN  A                          <= 混合.001.Result
+      IN  B                          <= 图像纹理.011.Color
+      OUT Result                     => 组输出.Result
+      OUT Result                     => 组输出.Result
+      OUT Result                     => 组输出.Result
+      OUT Result                     => 组输出.Result

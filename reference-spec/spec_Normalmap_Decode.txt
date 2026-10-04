@@ -1,0 +1,83 @@
+########################################################################################################
+# GROUP 'Normalmap Decode'   users=4   nodes=13   links=15
+########################################################################################################
+## INTERFACE
+   OUTPUT NodeSocketVector   Normal                             default=(0, 0, 0)
+   INPUT  NodeSocketFloat    Normal                             default=0
+
+## NODES
+
+  [组输入] <GroupInput>
+       out Normal        (id=Socket_0      ) => 矢量运算.Vector
+
+  [组输出] <GroupOutput>
+       in  Normal        (id=Socket_4      ) <= 法线贴图.Normal
+
+  [分离 XYZ] <SeparateXYZ>
+       in  Vector        (id=Vector        ) <= 矢量运算.Vector
+       out X             (id=X             ) => 运算.Value , 合并 XYZ.X
+       out Y             (id=Y             ) => 运算.001.Value , 合并 XYZ.Y
+
+  [矢量运算] <VectorMath>
+       props: operation=MULTIPLY_ADD
+       in  Vector        (id=Vector        ) <= 组输入.Normal
+       in  Vector        (id=Vector_001    ) =  (2, 2, 2)
+       in  Vector        (id=Vector_002    ) =  (-1, -1, -1)
+       out Vector        (id=Vector        ) => 分离 XYZ.Vector
+
+  [运算] <Math>
+       props: operation=POWER
+       in  Value         (id=Value         ) <= 分离 XYZ.X
+       in  Value         (id=Value_001     ) =  2
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.002.Value
+
+  [运算.001] <Math>
+       props: operation=POWER
+       in  Value         (id=Value         ) <= 分离 XYZ.Y
+       in  Value         (id=Value_001     ) =  2
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.002.Value
+
+  [运算.002] <Math>
+       props: operation=ADD
+       in  Value         (id=Value         ) <= 运算.Value
+       in  Value         (id=Value_001     ) <= 运算.001.Value
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.003.Value
+
+  [运算.003] <Math>
+       props: operation=MINIMUM
+       in  Value         (id=Value         ) <= 运算.002.Value
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.004.Value
+
+  [运算.004] <Math>
+       props: operation=SUBTRACT
+       in  Value         (id=Value_001     ) <= 运算.003.Value
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.005.Value
+
+  [运算.005] <Math>
+       props: operation=SQRT
+       in  Value         (id=Value         ) <= 运算.004.Value
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 合并 XYZ.Z
+
+  [合并 XYZ] <CombineXYZ>
+       in  X             (id=X             ) <= 分离 XYZ.X
+       in  Y             (id=Y             ) <= 分离 XYZ.Y
+       in  Z             (id=Z             ) <= 运算.005.Value
+       out Vector        (id=Vector        ) => 矢量运算.001.Vector
+
+  [矢量运算.001] <VectorMath>
+       props: operation=MULTIPLY_ADD
+       in  Vector        (id=Vector        ) <= 合并 XYZ.Vector
+       in  Vector        (id=Vector_001    ) =  (0.5, 0.5, 0.5)
+       in  Vector        (id=Vector_002    ) =  (0.5, 0.5, 0.5)
+       out Vector        (id=Vector        ) => 法线贴图.Color
+
+  [法线贴图] <NormalMap>
+       props: space=TANGENT  convention=OPENGL  base=DISPLACED
+       in  Color         (id=Color         ) <= 矢量运算.001.Vector
+       out Normal        (id=Normal        ) => 组输出.Normal

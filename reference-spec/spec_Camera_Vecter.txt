@@ -1,0 +1,31 @@
+########################################################################################################
+# GROUP 'Camera Vecter'   users=1   nodes=6   links=4
+########################################################################################################
+## INTERFACE
+   OUTPUT NodeSocketVector   Vector                             default=(0, 0, 0)
+
+## NODES
+
+  [摄像机数据] <CameraData>
+       out View Vector   (id=View Vector   ) => 矢量运算.008.Vector
+
+  [矢量运算.008] <VectorMath>
+       props: operation=MULTIPLY
+       in  Vector        (id=Vector        ) <= 摄像机数据.View Vector
+       in  Vector        (id=Vector_001    ) =  (-1, -1, -1)
+       out Vector        (id=Vector        ) => 矢量变换.Vector
+
+  [矢量变换] <VectorTransform>
+       props: vector_type=VECTOR  convert_from=CAMERA  convert_to=WORLD
+       in  Vector        (id=Vector        ) <= 矢量运算.008.Vector
+       out Vector        (id=Vector        ) => 矢量运算.009.Vector
+
+  [矢量运算.009] <VectorMath>
+       props: operation=NORMALIZE
+       in  Vector        (id=Vector        ) <= 矢量变换.Vector
+       out Vector        (id=Vector        ) => 组输出.Vector
+
+  [组输出] <GroupOutput>
+       in  Vector        (id=Socket_0      ) <= 矢量运算.009.Vector
+
+  [组输入] <GroupInput>

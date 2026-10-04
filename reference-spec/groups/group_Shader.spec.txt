@@ -1,0 +1,871 @@
+################################################################################################
+# GROUP 'Shader'   users=39  nodes=111 links=165
+################################################################################################
+GROUP INTERFACE:
+   OUTPUT NodeSocketShader   Emission                           default=-
+   INPUT  NodeSocketFloat    Face                               default=0
+   INPUT  NodeSocketFloat    Body01                             default=0
+   INPUT  NodeSocketFloat    Body                               default=0
+   INPUT  NodeSocketFloat    Hair                               default=0
+   INPUT  NodeSocketFloat    Eyes                               default=0
+   INPUT  NodeSocketFloat    Crystal                            default=0
+
+NODES (with live wiring):
+
+  NODE '群组'  (ShaderNodeGroup  >>GROUP:Head Vector  [frame:帧])
+      OUT Above                      => 矢量运算.Vector
+
+  NODE '矢量运算'  (ShaderNodeVectorMath  [frame:帧])
+      props: operation=PROJECT
+      IN  Vector                     <= 群组.Above , 群组.004.Vector
+      IN  Vector                     <= 群组.Above , 群组.004.Vector
+      IN  Vector                     <= 群组.Above , 群组.004.Vector
+      IN  Scale                      =  1
+      OUT Vector                     => 矢量运算.001.Vector
+
+  NODE '矢量运算.001'  (ShaderNodeVectorMath  [frame:帧])
+      props: operation=SUBTRACT
+      IN  Vector                     <= 矢量运算.Vector , 群组.004.Vector
+      IN  Vector                     <= 矢量运算.Vector , 群组.004.Vector
+      IN  Vector                     <= 矢量运算.Vector , 群组.004.Vector
+      IN  Scale                      =  1
+      OUT Vector                     => 矢量运算.002.Vector , 矢量运算.004.Vector
+
+  NODE '矢量运算.002'  (ShaderNodeVectorMath  [frame:帧])
+      props: operation=DOT_PRODUCT
+      IN  Vector                     <= 矢量运算.001.Vector , 群组.001.Right
+      IN  Vector                     <= 矢量运算.001.Vector , 群组.001.Right
+      IN  Vector                     <= 矢量运算.001.Vector , 群组.001.Right
+      IN  Scale                      =  1
+      OUT Value                      => 运算.003.Value
+
+  NODE '矢量运算.004'  (ShaderNodeVectorMath  [frame:帧])
+      props: operation=DOT_PRODUCT
+      IN  Vector                     <= 矢量运算.001.Vector , 群组.001.Front
+      IN  Vector                     <= 矢量运算.001.Vector , 群组.001.Front
+      IN  Vector                     <= 矢量运算.001.Vector , 群组.001.Front
+      IN  Scale                      =  1
+      OUT Value                      => 运算.001.Value
+
+  NODE '合并 XYZ.002'  (ShaderNodeCombineXYZ  [frame:帧])
+      IN  X                          <= 运算.003.Value
+      IN  Y                          =  1
+      IN  Z                          =  0
+      OUT Vector                     => 矢量运算.005.Vector
+
+  NODE '矢量运算.005'  (ShaderNodeVectorMath  [frame:帧])
+      props: operation=MULTIPLY
+      IN  Vector                     <= 合并 XYZ.002.Vector , UV 贴图.UV
+      IN  Vector                     <= 合并 XYZ.002.Vector , UV 贴图.UV
+      IN  Vector                     <= 合并 XYZ.002.Vector , UV 贴图.UV
+      IN  Scale                      =  1
+      OUT Vector                     => 矢量运算.006.Vector
+
+  NODE '矢量运算.006'  (ShaderNodeVectorMath  [frame:帧])
+      props: operation=MULTIPLY
+      IN  Vector                     <= 矢量运算.005.Vector
+      IN  Vector                     <= 矢量运算.005.Vector
+      IN  Vector                     <= 矢量运算.005.Vector
+      IN  Scale                      =  1
+      OUT Vector                     => 图像纹理.Vector
+
+  NODE '运算.001'  (ShaderNodeMath  [frame:帧])
+      props: operation=MULTIPLY_ADD
+      IN  Value                      <= 矢量运算.004.Value
+      IN  Value                      <= 矢量运算.004.Value
+      IN  Value                      <= 矢量运算.004.Value
+      OUT Value                      => 运算.002.Value
+
+  NODE '运算.003'  (ShaderNodeMath  [frame:帧])
+      props: operation=SIGN
+      IN  Value                      <= 矢量运算.002.Value
+      IN  Value                      <= 矢量运算.002.Value
+      IN  Value                      <= 矢量运算.002.Value
+      OUT Value                      => 合并 XYZ.002.X
+
+  NODE '群组.001'  (ShaderNodeGroup  >>GROUP:Head Vector  [frame:帧])
+      OUT Right                      => 矢量运算.002.Vector
+      OUT Front                      => 矢量运算.004.Vector
+
+  NODE '图像纹理'  (ShaderNodeTexImage  [frame:帧])
+      props: extension=REPEAT  interpolation=Linear  projection=FLAT
+      IN  Vector                     <= 矢量运算.006.Vector
+      OUT Alpha                      => 运算.Value
+
+  NODE '运算'  (ShaderNodeMath  [frame:帧])
+      props: operation=GREATER_THAN
+      IN  Value                      <= 运算.002.Value , 图像纹理.Alpha
+      IN  Value                      <= 运算.002.Value , 图像纹理.Alpha
+      IN  Value                      <= 运算.002.Value , 图像纹理.Alpha
+      OUT Value                      => 映射范围.To Max
+
+  NODE 'UV 贴图'  (ShaderNodeUVMap  [frame:帧])
+      OUT UV                         => 矢量运算.005.Vector
+      ALLIN  
+      ALLOUT UV
+
+  NODE '运算.002'  (ShaderNodeMath  [frame:帧])
+      props: operation=SUBTRACT
+      IN  Value                      <= 运算.001.Value
+      IN  Value                      <= 运算.001.Value
+      IN  Value                      <= 运算.001.Value
+      OUT Value                      => 运算.Value
+
+  NODE '帧'  (NodeFrame  label='SDF')
+      props: label_size=20  shrink=True
+      ALLIN  
+      ALLOUT 
+
+  NODE '组输入'  (NodeGroupInput  [frame:帧.001])
+      OUT Face                       => 群组.002.Face
+      OUT Body01                     => 群组.002.Body01
+      OUT Body                       => 群组.002.Body
+      OUT Hair                       => 群组.002.Hair
+      OUT Eyes                       => 群组.002.Eyes
+
+  NODE '群组.002'  (ShaderNodeGroup  >>GROUP:Base Color  [frame:帧.001])
+      IN  Face                       <= 组输入.Face
+      IN  Body01                     <= 组输入.Body01
+      IN  Body                       <= 组输入.Body
+      IN  Hair                       <= 组输入.Hair
+      IN  Eyes                       <= 组输入.Eyes
+      OUT Result                     => 混合.013.B , 混合.B
+      OUT Result                     => 混合.013.B , 混合.B
+
+  NODE '混合'  (ShaderNodeMix  label='Ramp Mask')
+      props: blend_type=MIX  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     <= 映射范围.Result
+      IN  Factor                     <= 映射范围.Result
+      IN  A                          <= 混合.013.Result
+      IN  B                          <= 群组.002.Result
+      IN  A                          <= 混合.013.Result
+      IN  B                          <= 群组.002.Result
+      IN  A                          <= 混合.013.Result
+      IN  B                          <= 群组.002.Result
+      IN  A                          <= 混合.013.Result
+      IN  B                          <= 群组.002.Result
+      OUT Result                     => 混合.007.A
+      OUT Result                     => 混合.007.A
+      OUT Result                     => 混合.007.A
+      OUT Result                     => 混合.007.A
+
+  NODE '映射范围'  (ShaderNodeMapRange  [frame:帧.003])
+      props: clamp=True  data_type=FLOAT  interpolation_type=LINEAR
+      IN  Value                      <= 组输入.001.Face
+      IN  From Min                   =  0
+      IN  From Max                   =  1
+      IN  To Min                     <= 运算.017.Value
+      IN  To Max                     <= 运算.Value
+      IN  Steps                      =  4
+      IN  Vector                     =  (0, 0, 0)
+      IN  From Min                   =  (0, 0, 0)
+      IN  From Max                   =  (1, 1, 1)
+      IN  To Min                     <= 运算.017.Value
+      IN  To Max                     <= 运算.Value
+      IN  Steps                      =  (4, 4, 4)
+      OUT Result                     => 混合.Factor , 合并 XYZ.X
+
+  NODE '组输入.001'  (NodeGroupInput  [frame:帧.003])
+      OUT Face                       => 映射范围.Value
+
+  NODE '帧.001'  (NodeFrame  label='Base Color')
+      props: label_size=20  shrink=True
+      ALLIN  
+      ALLOUT 
+
+  NODE '群组.003'  (ShaderNodeGroup  >>GROUP:Lightmap  [frame:帧.002])
+      IN  Face                       <= 组输入.003.Face
+      IN  Body01                     <= 组输入.003.Body01
+      IN  Body                       <= 组输入.003.Body
+      IN  Hair                       <= 组输入.003.Hair
+      IN  Eyes                       <= 组输入.003.Eyes
+      OUT 绿                          => 群组.007.Lightmap.g , 运算.004.Value , 运算.005.Value
+
+  NODE '组输入.003'  (NodeGroupInput  [frame:帧.002])
+      OUT Face                       => 群组.003.Face
+      OUT Body01                     => 群组.003.Body01
+      OUT Body                       => 群组.003.Body
+      OUT Hair                       => 群组.003.Hair
+      OUT Eyes                       => 群组.003.Eyes
+
+  NODE '群组.004'  (ShaderNodeGroup  >>GROUP:Light Vecter  [frame:帧])
+      OUT Vector                     => 矢量运算.001.Vector , 矢量运算.Vector
+
+  NODE 'Light Normol'  (ShaderNodeGroup  >>GROUP:Light Vecter  [frame:帧.002])
+      OUT Vector                     => 矢量运算.003.Vector
+
+  NODE '矢量运算.003'  (ShaderNodeVectorMath  [frame:帧.002])
+      props: operation=DOT_PRODUCT
+      IN  Vector                     <= Light Normol.Vector , 群组.006.Normal
+      IN  Vector                     <= Light Normol.Vector , 群组.006.Normal
+      IN  Vector                     <= Light Normol.Vector , 群组.006.Normal
+      IN  Scale                      =  1
+      OUT Value                      => 群组.005.NoL
+
+  NODE '群组.005'  (ShaderNodeGroup  >>GROUP:Lambert  [frame:帧.002])
+      IN  NoL                        <= 矢量运算.003.Value
+      OUT NoL                        => 运算.018.Value
+      OUT NoL*0.5+0.5                => 转接点.002.Input
+
+  NODE '矢量运算.007'  (ShaderNodeVectorMath  [frame:帧.002])
+      props: operation=DOT_PRODUCT
+      IN  Vector                     <= 转接点.001.Output , 群组.007.Lightmap.g
+      IN  Vector                     <= 转接点.001.Output , 群组.007.Lightmap.g
+      IN  Vector                     <= 转接点.001.Output , 群组.007.Lightmap.g
+      IN  Scale                      =  1
+
+  NODE '节点组'  (ShaderNodeGroup  >>GROUP:Normalmap  [frame:帧.002])
+      IN  Face                       <= 组输入.002.Face
+      IN  Body01                     <= 组输入.002.Body01
+      IN  Body                       <= 组输入.002.Body
+      IN  Hair                       <= 组输入.002.Hair
+      IN  Eyes                       <= 组输入.002.Eyes
+      OUT Normol Map                 => 群组.006.Normal
+
+  NODE '组输入.002'  (NodeGroupInput  [frame:帧.002])
+      OUT Face                       => 节点组.Face
+      OUT Body01                     => 节点组.Body01
+      OUT Body                       => 节点组.Body
+      OUT Hair                       => 节点组.Hair
+      OUT Eyes                       => 节点组.Eyes
+
+  NODE '群组.006'  (ShaderNodeGroup  >>GROUP:Normalmap Decode  [frame:帧.002])
+      IN  Normal                     <= 节点组.Normol Map
+      OUT Normal                     => 矢量运算.003.Vector
+
+  NODE '帧.002'  (NodeFrame  label='AO')
+      props: label_size=20  shrink=True
+      ALLIN  
+      ALLOUT 
+
+  NODE '群组.007'  (ShaderNodeGroup  >>GROUP:LightmapSmoothStep  [frame:帧.002])
+      IN  Lightmap.g                 <= 群组.003.绿
+      OUT Lightmap.g                 => 矢量运算.007.Vector
+      OUT Smoothstep(0.2,0.3,Lightmap.g) => 运算.017.Value
+
+  NODE '运算.004'  (ShaderNodeMath  [frame:帧.002])
+      props: operation=ADD
+      IN  Value                      <= 群组.003.绿
+      IN  Value                      <= 群组.003.绿
+      IN  Value                      <= 群组.003.绿
+      OUT Value                      => 转接点.007.Input
+
+  NODE '运算.005'  (ShaderNodeMath  [frame:帧.002])
+      props: operation=SUBTRACT
+      IN  Value                      <= 群组.003.绿
+      IN  Value                      <= 群组.003.绿
+      IN  Value                      <= 群组.003.绿
+      OUT Value                      => 转接点.006.Input
+
+  NODE '映射范围.001'  (ShaderNodeMapRange  [frame:帧.002])
+      props: clamp=True  data_type=FLOAT  interpolation_type=LINEAR
+      IN  Value                      <= 转接点.003.Output
+      IN  From Min                   <= 转接点.006.Output
+      IN  From Max                   <= 转接点.007.Output
+      IN  To Min                     =  0
+      IN  To Max                     =  1
+      IN  Steps                      =  4
+      IN  Vector                     =  (0, 0, 0)
+      IN  From Min                   <= 转接点.006.Output
+      IN  From Max                   <= 转接点.007.Output
+      IN  To Min                     =  (0, 0, 0)
+      IN  To Max                     =  (1, 1, 1)
+      IN  Steps                      =  (4, 4, 4)
+
+  NODE '转接点'  (NodeReroute  [frame:帧.002])
+      props: socket_idname=NodeSocketFloat
+      IN  Input                      <= 运算.018.Value
+      OUT Output                     => 转接点.001.Input
+      ALLIN  Input
+      ALLOUT Output
+
+  NODE '转接点.001'  (NodeReroute  [frame:帧.002])
+      props: socket_idname=NodeSocketFloat
+      IN  Input                      <= 转接点.Output
+      OUT Output                     => 矢量运算.007.Vector , 运算.017.Value
+      ALLIN  Input
+      ALLOUT Output
+
+  NODE '转接点.002'  (NodeReroute  [frame:帧.002])
+      props: socket_idname=NodeSocketFloat
+      IN  Input                      <= 群组.005.NoL*0.5+0.5
+      OUT Output                     => 转接点.003.Input
+      ALLIN  Input
+      ALLOUT Output
+
+  NODE '转接点.003'  (NodeReroute  [frame:帧.002])
+      props: socket_idname=NodeSocketFloat
+      IN  Input                      <= 转接点.002.Output
+      OUT Output                     => 映射范围.001.Value
+      ALLIN  Input
+      ALLOUT Output
+
+  NODE '转接点.006'  (NodeReroute  [frame:帧.002])
+      props: socket_idname=NodeSocketFloat
+      IN  Input                      <= 运算.005.Value
+      OUT Output                     => 映射范围.001.From Min
+      ALLIN  Input
+      ALLOUT Output
+
+  NODE '转接点.007'  (NodeReroute  [frame:帧.002])
+      props: socket_idname=NodeSocketFloat
+      IN  Input                      <= 运算.004.Value
+      OUT Output                     => 映射范围.001.From Max
+      ALLIN  Input
+      ALLOUT Output
+
+  NODE 'Lightmap'  (ShaderNodeGroup  >>GROUP:Lightmap  [frame:帧.004])
+      IN  Face                       <= 组输入.005.Face
+      IN  Body01                     <= 组输入.005.Body01
+      IN  Body                       <= 组输入.005.Body
+      IN  Hair                       <= 组输入.005.Hair
+      IN  Eyes                       <= 组输入.005.Eyes
+      OUT 红                          => 运算.008.Value , 运算.011.Value , 运算.016.Value
+      OUT 蓝                          => 运算.007.Value , 运算.009.Value
+
+  NODE '组输入.005'  (NodeGroupInput  [frame:帧.004])
+      OUT Face                       => Lightmap.Face
+      OUT Body01                     => Lightmap.Body01
+      OUT Body                       => Lightmap.Body
+      OUT Hair                       => Lightmap.Hair
+      OUT Eyes                       => Lightmap.Eyes
+
+  NODE '运算.006'  (ShaderNodeMath  [frame:帧.004])
+      props: operation=SUBTRACT
+      IN  Value                      <= 混合.010.Result
+      IN  Value                      <= 混合.010.Result
+      IN  Value                      <= 混合.010.Result
+      OUT Value                      => 运算.007.Value
+
+  NODE '运算.007'  (ShaderNodeMath  [frame:帧.004])
+      props: operation=LESS_THAN
+      IN  Value                      <= 运算.006.Value , Lightmap.蓝
+      IN  Value                      <= 运算.006.Value , Lightmap.蓝
+      IN  Value                      <= 运算.006.Value , Lightmap.蓝
+      OUT Value                      => 运算.008.Value
+
+  NODE '运算.008'  (ShaderNodeMath  [frame:帧.004])
+      props: operation=MULTIPLY
+      IN  Value                      <= 运算.007.Value , Lightmap.红
+      IN  Value                      <= 运算.007.Value , Lightmap.红
+      IN  Value                      <= 运算.007.Value , Lightmap.红
+      OUT Value                      => 混合.002.A
+
+  NODE '运算.009'  (ShaderNodeMath  [frame:帧.004])
+      props: operation=MULTIPLY
+      IN  Value                      <= Lightmap.蓝 , 混合.010.Result
+      IN  Value                      <= Lightmap.蓝 , 混合.010.Result
+      IN  Value                      <= Lightmap.蓝 , 混合.010.Result
+      OUT Value                      => 运算.010.Value , 运算.020.Value
+
+  NODE 'Base Color'  (ShaderNodeGroup  >>GROUP:Base Color  [frame:帧.004])
+      IN  Face                       <= 组输入.006.Face
+      IN  Body01                     <= 组输入.006.Body01
+      IN  Body                       <= 组输入.006.Body
+      IN  Hair                       <= 组输入.006.Hair
+      IN  Eyes                       <= 组输入.006.Eyes
+      OUT Result                     => 混合.001.B , 混合.003.A
+      OUT Result                     => 混合.001.B , 混合.003.A
+
+  NODE '组输入.006'  (NodeGroupInput  [frame:帧.004])
+      OUT Face                       => Base Color.Face
+      OUT Body01                     => Base Color.Body01
+      OUT Body                       => Base Color.Body
+      OUT Hair                       => Base Color.Hair
+      OUT Eyes                       => Base Color.Eyes
+
+  NODE '混合.001'  (ShaderNodeMix  [frame:帧.004])
+      props: blend_type=MULTIPLY  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     =  1
+      IN  Factor                     =  (0.5, 0.5, 0.5)
+      IN  A                          <= 运算.010.Value
+      IN  B                          <= Base Color.Result
+      IN  A                          <= 运算.010.Value
+      IN  B                          <= Base Color.Result
+      IN  A                          <= 运算.010.Value
+      IN  B                          <= Base Color.Result
+      IN  A                          <= 运算.010.Value
+      IN  B                          <= Base Color.Result
+      OUT Result                     => 混合.002.B
+      OUT Result                     => 混合.002.B
+      OUT Result                     => 混合.002.B
+      OUT Result                     => 混合.002.B
+
+  NODE '运算.010'  (ShaderNodeMath  [frame:帧.004])
+      props: operation=MULTIPLY
+      IN  Value                      <= 运算.009.Value , 运算.015.Value
+      IN  Value                      <= 运算.009.Value , 运算.015.Value
+      IN  Value                      <= 运算.009.Value , 运算.015.Value
+      OUT Value                      => 混合.001.A
+
+  NODE 'Light Normol.001'  (ShaderNodeGroup  >>GROUP:Light Vecter  [frame:帧.004])
+      OUT Vector                     => 矢量运算.008.Vector
+
+  NODE '矢量运算.008'  (ShaderNodeVectorMath  [frame:帧.004])
+      props: operation=DOT_PRODUCT
+      IN  Vector                     <= Light Normol.001.Vector , 群组.009.Normal
+      IN  Vector                     <= Light Normol.001.Vector , 群组.009.Normal
+      IN  Vector                     <= Light Normol.001.Vector , 群组.009.Normal
+      IN  Scale                      =  1
+      OUT Value                      => 群组.008.NoL , 运算.012.Value
+
+  NODE '群组.008'  (ShaderNodeGroup  >>GROUP:Lambert  [frame:帧.004])
+      IN  NoL                        <= 矢量运算.008.Value
+
+  NODE '节点组.001'  (ShaderNodeGroup  >>GROUP:Normalmap  [frame:帧.004])
+      IN  Face                       <= 组输入.007.Face
+      IN  Body01                     <= 组输入.007.Body01
+      IN  Body                       <= 组输入.007.Body
+      IN  Hair                       <= 组输入.007.Hair
+      IN  Eyes                       <= 组输入.007.Eyes
+      OUT Normol Map                 => 群组.009.Normal
+
+  NODE '组输入.007'  (NodeGroupInput  [frame:帧.004])
+      OUT Face                       => 节点组.001.Face
+      OUT Body01                     => 节点组.001.Body01
+      OUT Body                       => 节点组.001.Body
+      OUT Hair                       => 节点组.001.Hair
+      OUT Eyes                       => 节点组.001.Eyes
+
+  NODE '群组.009'  (ShaderNodeGroup  >>GROUP:Normalmap Decode  [frame:帧.004])
+      IN  Normal                     <= 节点组.001.Normol Map
+      OUT Normal                     => 矢量运算.008.Vector
+
+  NODE '混合.002'  (ShaderNodeMix  [frame:帧.004])
+      props: blend_type=MIX  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     <= 混合.009.Result
+      IN  Factor                     <= 混合.009.Result
+      IN  A                          <= 运算.008.Value
+      IN  B                          <= 混合.001.Result
+      IN  A                          <= 运算.008.Value
+      IN  B                          <= 混合.001.Result
+      IN  A                          <= 运算.008.Value
+      IN  B                          <= 混合.001.Result
+      IN  A                          <= 运算.008.Value
+      IN  B                          <= 混合.001.Result
+      OUT Result                     => 混合.004.A
+      OUT Result                     => 混合.004.A
+      OUT Result                     => 混合.004.A
+      OUT Result                     => 混合.004.A
+
+  NODE '运算.011'  (ShaderNodeMath  [frame:帧.004])
+      props: operation=GREATER_THAN
+      IN  Value                      <= Lightmap.红
+      IN  Value                      <= Lightmap.红
+      IN  Value                      <= Lightmap.红
+      OUT Value                      => 混合.004.Factor
+
+  NODE '图像纹理.001'  (ShaderNodeTexImage  [frame:帧.004])
+      props: extension=REPEAT  interpolation=Linear  projection=FLAT
+      IN  Vector                     <= 矢量运算.009.Vector
+      OUT Color                      => 混合.003.B
+
+  NODE '节点组.002'  (ShaderNodeGroup  >>GROUP:Normalmap  [frame:帧.004])
+      IN  Face                       <= 组输入.008.Face
+      IN  Body01                     <= 组输入.008.Body01
+      IN  Body                       <= 组输入.008.Body
+      IN  Hair                       <= 组输入.008.Hair
+      IN  Eyes                       <= 组输入.008.Eyes
+      OUT Normol Map                 => 群组.011.Normal
+
+  NODE '组输入.008'  (NodeGroupInput  [frame:帧.004])
+      OUT Face                       => 节点组.002.Face
+      OUT Body01                     => 节点组.002.Body01
+      OUT Body                       => 节点组.002.Body
+      OUT Hair                       => 节点组.002.Hair
+      OUT Eyes                       => 节点组.002.Eyes
+
+  NODE '群组.011'  (ShaderNodeGroup  >>GROUP:Normalmap Decode  [frame:帧.004])
+      IN  Normal                     <= 节点组.002.Normol Map
+      OUT Normal                     => 矢量变换.Vector
+
+  NODE '矢量变换'  (ShaderNodeVectorTransform  [frame:帧.004])
+      props: convert_from=OBJECT  convert_to=CAMERA  vector_type=VECTOR
+      IN  Vector                     <= 群组.011.Normal
+      OUT Vector                     => 矢量运算.009.Vector
+      ALLIN  Vector
+      ALLOUT Vector
+
+  NODE '矢量运算.009'  (ShaderNodeVectorMath  [frame:帧.004])
+      props: operation=MULTIPLY_ADD
+      IN  Vector                     <= 矢量变换.Vector
+      IN  Vector                     <= 矢量变换.Vector
+      IN  Vector                     <= 矢量变换.Vector
+      IN  Scale                      =  1
+      OUT Vector                     => 图像纹理.001.Vector
+
+  NODE '混合.003'  (ShaderNodeMix  [frame:帧.004])
+      props: blend_type=MULTIPLY  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     =  1
+      IN  Factor                     =  (0.5, 0.5, 0.5)
+      IN  A                          <= Base Color.Result
+      IN  B                          <= 图像纹理.001.Color
+      IN  A                          <= Base Color.Result
+      IN  B                          <= 图像纹理.001.Color
+      IN  A                          <= Base Color.Result
+      IN  B                          <= 图像纹理.001.Color
+      IN  A                          <= Base Color.Result
+      IN  B                          <= 图像纹理.001.Color
+      OUT Result                     => 混合.004.B
+      OUT Result                     => 混合.004.B
+      OUT Result                     => 混合.004.B
+      OUT Result                     => 混合.004.B
+
+  NODE '混合.004'  (ShaderNodeMix  [frame:帧.004])
+      props: blend_type=MIX  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     <= 运算.011.Value
+      IN  Factor                     <= 运算.011.Value
+      IN  A                          <= 混合.002.Result
+      IN  B                          <= 混合.003.Result
+      IN  A                          <= 混合.002.Result
+      IN  B                          <= 混合.003.Result
+      IN  A                          <= 混合.002.Result
+      IN  B                          <= 混合.003.Result
+      IN  A                          <= 混合.002.Result
+      IN  B                          <= 混合.003.Result
+      OUT Result                     => 混合.007.B
+      OUT Result                     => 混合.007.B
+      OUT Result                     => 混合.007.B
+      OUT Result                     => 混合.007.B
+
+  NODE '运算.012'  (ShaderNodeMath  [frame:帧.004])
+      props: operation=MAXIMUM
+      IN  Value                      <= 矢量运算.008.Value
+      IN  Value                      <= 矢量运算.008.Value
+      IN  Value                      <= 矢量运算.008.Value
+      OUT Value                      => 运算.013.Value
+
+  NODE '运算.013'  (ShaderNodeMath  [frame:帧.004])
+      props: operation=MULTIPLY_ADD
+      IN  Value                      <= 运算.012.Value
+      IN  Value                      <= 运算.012.Value
+      IN  Value                      <= 运算.012.Value
+      OUT Value                      => 运算.014.Value
+
+  NODE '运算.014'  (ShaderNodeMath  [frame:帧.004])
+      props: operation=POWER
+      IN  Value                      <= 运算.013.Value
+      IN  Value                      <= 运算.013.Value
+      IN  Value                      <= 运算.013.Value
+      OUT Value                      => SmoothStep.x
+
+  NODE 'SmoothStep'  (ShaderNodeGroup  >>GROUP:SmoothStep  [frame:帧.004])
+      IN  t1                         =  0.423
+      IN  t2                         =  0.45
+      IN  x                          <= 运算.014.Value
+      OUT Value                      => 运算.015.Value
+
+  NODE '运算.015'  (ShaderNodeMath  [frame:帧.004])
+      props: operation=MULTIPLY_ADD
+      IN  Value                      <= SmoothStep.Value
+      IN  Value                      <= SmoothStep.Value
+      IN  Value                      <= SmoothStep.Value
+      OUT Value                      => 运算.010.Value
+
+  NODE '混合.007'  (ShaderNodeMix)
+      props: blend_type=ADD  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     =  1
+      IN  Factor                     =  (0.5, 0.5, 0.5)
+      IN  A                          <= 混合.Result
+      IN  B                          <= 混合.004.Result
+      IN  A                          <= 混合.Result
+      IN  B                          <= 混合.004.Result
+      IN  A                          <= 混合.Result
+      IN  B                          <= 混合.004.Result
+      IN  A                          <= 混合.Result
+      IN  B                          <= 混合.004.Result
+      OUT Result                     => 混合.005.A
+      OUT Result                     => 混合.005.A
+      OUT Result                     => 混合.005.A
+      OUT Result                     => 混合.005.A
+
+  NODE '运算.016'  (ShaderNodeMath  [frame:帧.004])
+      props: operation=GREATER_THAN
+      IN  Value                      <= Lightmap.红
+      IN  Value                      <= Lightmap.红
+      IN  Value                      <= Lightmap.红
+      OUT Value                      => 混合.009.B
+
+  NODE '帧.003'  (NodeFrame  label='AO Mix'  [frame:帧.005])
+      props: label_size=20  shrink=True
+      ALLIN  
+      ALLOUT 
+
+  NODE '帧.004'  (NodeFrame  label='Specular')
+      props: label_size=20  shrink=True
+      ALLIN  
+      ALLOUT 
+
+  NODE '群组.012'  (ShaderNodeGroup  >>GROUP:Ramp  [frame:帧.005])
+      IN  Face                       <= 组输入.010.Face
+      IN  Body01                     <= 组输入.010.Body01
+      IN  Body                       <= 组输入.010.Body
+      IN  Hair                       <= 组输入.010.Hair
+      IN  Eyes                       <= 组输入.010.Eyes
+      IN  UV                         <= 合并 XYZ.Vector
+      IN  Cool/Warm                  =  0
+      OUT Result                     => 混合.013.A
+
+  NODE '组输入.010'  (NodeGroupInput  [frame:帧.005])
+      OUT Face                       => 群组.012.Face
+      OUT Body01                     => 群组.012.Body01
+      OUT Body                       => 群组.012.Body
+      OUT Hair                       => 群组.012.Hair
+      OUT Eyes                       => 群组.012.Eyes
+
+  NODE 'Lightmap.001'  (ShaderNodeGroup  >>GROUP:Lightmap  [frame:帧.005])
+      IN  Face                       <= 组输入.011.Face
+      IN  Body01                     <= 组输入.011.Body01
+      IN  Body                       <= 组输入.011.Body
+      IN  Hair                       <= 组输入.011.Hair
+      IN  Eyes                       =  0
+      OUT Alpha                      => 群组.013.Mask
+
+  NODE '组输入.011'  (NodeGroupInput  [frame:帧.005])
+      OUT Face                       => Lightmap.001.Face
+      OUT Body01                     => Lightmap.001.Body01
+      OUT Body                       => Lightmap.001.Body
+      OUT Hair                       => Lightmap.001.Hair
+
+  NODE '群组.013'  (ShaderNodeGroup  >>GROUP:Ramp Select  [frame:帧.005])
+      IN  Mask                       <= Lightmap.001.Alpha
+      IN  A0                         =  1
+      IN  A1                         =  4
+      IN  A2                         =  3
+      IN  A3                         =  5
+      IN  A4                         =  2
+      OUT RampV                      => 映射范围.002.To Min
+
+  NODE '合并 XYZ'  (ShaderNodeCombineXYZ  [frame:帧.005])
+      IN  X                          <= 映射范围.Result
+      IN  Y                          <= 映射范围.002.Result
+      IN  Z                          =  0
+      OUT Vector                     => 群组.012.UV
+
+  NODE '运算.017'  (ShaderNodeMath  [frame:帧.002])
+      props: operation=MULTIPLY
+      IN  Value                      <= 群组.007.Smoothstep(0.2,0.3,Lightmap.g) , 转接点.001.Output
+      IN  Value                      <= 群组.007.Smoothstep(0.2,0.3,Lightmap.g) , 转接点.001.Output
+      IN  Value                      <= 群组.007.Smoothstep(0.2,0.3,Lightmap.g) , 转接点.001.Output
+      OUT Value                      => 映射范围.To Min
+
+  NODE 'Normalmap'  (ShaderNodeGroup  >>GROUP:Normalmap  [frame:帧.002])
+      IN  Face                       <= 组输入.012.Face
+      IN  Body01                     <= 组输入.012.Body01
+      IN  Body                       <= 组输入.012.Body
+      IN  Hair                       <= 组输入.012.Hair
+      IN  Eyes                       <= 组输入.012.Eyes
+      OUT DiffuseBias                => 运算.018.Value
+
+  NODE '组输入.012'  (NodeGroupInput  [frame:帧.002])
+      OUT Face                       => Normalmap.Face
+      OUT Body01                     => Normalmap.Body01
+      OUT Body                       => Normalmap.Body
+      OUT Hair                       => Normalmap.Hair
+      OUT Eyes                       => Normalmap.Eyes
+
+  NODE '运算.018'  (ShaderNodeMath  [frame:帧.002])
+      props: operation=ADD  use_clamp=True
+      IN  Value                      <= Normalmap.DiffuseBias , 群组.005.NoL
+      IN  Value                      <= Normalmap.DiffuseBias , 群组.005.NoL
+      IN  Value                      <= Normalmap.DiffuseBias , 群组.005.NoL
+      OUT Value                      => 转接点.Input
+
+  NODE '映射范围.002'  (ShaderNodeMapRange  [frame:帧.005])
+      props: clamp=True  data_type=FLOAT  interpolation_type=LINEAR
+      IN  Value                      <= 组输入.004.Face
+      IN  From Min                   =  0
+      IN  From Max                   =  1
+      IN  To Min                     <= 群组.013.RampV
+      IN  To Max                     =  0.35
+      IN  Steps                      =  4
+      IN  Vector                     =  (0, 0, 0)
+      IN  From Min                   =  (0, 0, 0)
+      IN  From Max                   =  (1, 1, 1)
+      IN  To Min                     <= 群组.013.RampV
+      IN  To Max                     =  (1, 1, 1)
+      IN  Steps                      =  (4, 4, 4)
+      OUT Result                     => 合并 XYZ.Y
+
+  NODE '帧.005'  (NodeFrame  label='Ramp')
+      props: label_size=20  shrink=True
+      ALLIN  
+      ALLOUT 
+
+  NODE '层权重'  (ShaderNodeLayerWeight  [frame:帧.006])
+      IN  Blend                      =  0.5
+      IN  Normal                     =  (0, 0, 0)
+      OUT Facing                     => 运算.019.Value
+      ALLIN  Blend | Normal
+      ALLOUT Fresnel | Facing
+
+  NODE '运算.019'  (ShaderNodeMath  [frame:帧.006])
+      props: operation=POWER
+      IN  Value                      <= 层权重.Facing
+      IN  Value                      <= 层权重.Facing
+      IN  Value                      <= 层权重.Facing
+      OUT Value                      => 混合着色器.Factor
+
+  NODE '自发光.001'  (ShaderNodeEmission  [frame:帧.006])
+      IN  Color                      <= Base Color.001.Result
+      IN  Strength                   =  1
+      IN  Weight                     =  0
+      OUT Emission                   => 混合着色器.Shader
+      ALLIN  Color | Strength | Weight
+      ALLOUT Emission
+
+  NODE '混合着色器'  (ShaderNodeMixShader  [frame:帧.006])
+      IN  Factor                     <= 运算.019.Value
+      IN  Shader                     <= 自发光.001.Emission
+      IN  Shader                     <= 自发光.001.Emission
+      OUT Shader                     => 着色器 转 RGB.Shader
+      ALLIN  Factor | Shader | Shader
+      ALLOUT Shader
+
+  NODE '帧.006'  (NodeFrame  label='Rim')
+      props: label_size=20  shrink=True
+      ALLIN  
+      ALLOUT 
+
+  NODE '着色器 转 RGB'  (ShaderNodeShaderToRGB  [frame:帧.006])
+      IN  Shader                     <= 混合着色器.Shader
+      OUT Color                      => 混合.005.B
+      ALLIN  Shader
+      ALLOUT Color | Alpha
+
+  NODE '混合.005'  (ShaderNodeMix)
+      props: blend_type=ADD  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     =  1
+      IN  Factor                     =  (0.5, 0.5, 0.5)
+      IN  A                          <= 混合.007.Result
+      IN  B                          <= 着色器 转 RGB.Color
+      IN  A                          <= 混合.007.Result
+      IN  B                          <= 着色器 转 RGB.Color
+      IN  A                          <= 混合.007.Result
+      IN  B                          <= 着色器 转 RGB.Color
+      IN  A                          <= 混合.007.Result
+      IN  B                          <= 着色器 转 RGB.Color
+      OUT Result                     => 自发光.Color , 漫射 BSDF.Color
+      OUT Result                     => 自发光.Color , 漫射 BSDF.Color
+      OUT Result                     => 自发光.Color , 漫射 BSDF.Color
+      OUT Result                     => 自发光.Color , 漫射 BSDF.Color
+
+  NODE 'Base Color.001'  (ShaderNodeGroup  >>GROUP:Base Color  [frame:帧.006])
+      IN  Face                       <= 组输入.013.Face
+      IN  Body01                     <= 组输入.013.Body01
+      IN  Body                       <= 组输入.013.Body
+      IN  Hair                       <= 组输入.013.Hair
+      IN  Eyes                       <= 组输入.013.Eyes
+      OUT Result                     => 自发光.001.Color
+      OUT Result                     => 自发光.001.Color
+
+  NODE '组输入.013'  (NodeGroupInput  [frame:帧.006])
+      OUT Face                       => Base Color.001.Face
+      OUT Body01                     => Base Color.001.Body01
+      OUT Body                       => Base Color.001.Body
+      OUT Hair                       => Base Color.001.Hair
+      OUT Eyes                       => Base Color.001.Eyes
+
+  NODE '组输入.014'  (NodeGroupInput  [frame:帧.004])
+      OUT Crystal                    => 混合.009.Factor
+
+  NODE '运算.020'  (ShaderNodeMath  [frame:帧.004])
+      props: operation=GREATER_THAN
+      IN  Value                      <= 运算.009.Value
+      IN  Value                      <= 运算.009.Value
+      IN  Value                      <= 运算.009.Value
+      OUT Value                      => 混合.009.A
+
+  NODE '混合.009'  (ShaderNodeMix  [frame:帧.004])
+      props: blend_type=COLOR  clamp_factor=True  data_type=FLOAT  factor_mode=UNIFORM
+      IN  Factor                     <= 组输入.014.Crystal
+      IN  Factor                     <= 组输入.014.Crystal
+      IN  A                          <= 运算.020.Value
+      IN  B                          <= 运算.016.Value
+      IN  A                          <= 运算.020.Value
+      IN  B                          <= 运算.016.Value
+      IN  A                          <= 运算.020.Value
+      IN  B                          <= 运算.016.Value
+      IN  A                          <= 运算.020.Value
+      IN  B                          <= 运算.016.Value
+      OUT Result                     => 混合.002.Factor
+      OUT Result                     => 混合.002.Factor
+      OUT Result                     => 混合.002.Factor
+      OUT Result                     => 混合.002.Factor
+
+  NODE '组输入.015'  (NodeGroupInput  [frame:帧.004])
+      OUT Face                       => 群组.014.Face
+      OUT Body01                     => 群组.014.Body01
+      OUT Body                       => 群组.014.Body
+      OUT Hair                       => 群组.014.Hair
+      OUT Eyes                       => 群组.014.Eyes
+
+  NODE '群组.014'  (ShaderNodeGroup  >>GROUP:Blinn-Phong  [frame:帧.004])
+      IN  Face                       <= 组输入.015.Face
+      IN  Body01                     <= 组输入.015.Body01
+      IN  Body                       <= 组输入.015.Body
+      IN  Hair                       <= 组输入.015.Hair
+      IN  Eyes                       <= 组输入.015.Eyes
+      IN  Gloss                      =  5
+      OUT Blinn-Phong                => 混合.010.B
+
+  NODE '混合.010'  (ShaderNodeMix  [frame:帧.004])
+      props: blend_type=MIX  clamp_factor=True  data_type=FLOAT  factor_mode=UNIFORM
+      IN  Factor                     <= 组输入.016.Crystal
+      IN  Factor                     <= 组输入.016.Crystal
+      IN  A                          =  0
+      IN  B                          <= 群组.014.Blinn-Phong
+      IN  A                          =  (0, 0, 0)
+      IN  B                          <= 群组.014.Blinn-Phong
+      IN  A                          =  (0.5, 0.5, 0.5, 1)
+      IN  B                          <= 群组.014.Blinn-Phong
+      IN  A                          =  (0, 0, 0)
+      IN  B                          <= 群组.014.Blinn-Phong
+      OUT Result                     => 运算.006.Value , 运算.009.Value
+      OUT Result                     => 运算.006.Value , 运算.009.Value
+      OUT Result                     => 运算.006.Value , 运算.009.Value
+      OUT Result                     => 运算.006.Value , 运算.009.Value
+
+  NODE '组输入.016'  (NodeGroupInput  [frame:帧.004])
+      OUT Crystal                    => 混合.010.Factor
+
+  NODE '自发光'  (ShaderNodeEmission)
+      IN  Color                      <= 混合.005.Result
+      IN  Strength                   =  1
+      IN  Weight                     =  0
+      OUT Emission                   => 组输出.Emission
+      ALLIN  Color | Strength | Weight
+      ALLOUT Emission
+
+  NODE '组输出'  (NodeGroupOutput)
+      props: is_active_output=True
+      IN  Emission                   <= 自发光.Emission
+      IN                             =  -
+
+  NODE '混合.013'  (ShaderNodeMix  label='Ramp*Col')
+      props: blend_type=MULTIPLY  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     =  1
+      IN  Factor                     =  (0.5, 0.5, 0.5)
+      IN  A                          <= 群组.012.Result
+      IN  B                          <= 群组.002.Result
+      IN  A                          <= 群组.012.Result
+      IN  B                          <= 群组.002.Result
+      IN  A                          <= 群组.012.Result
+      IN  B                          <= 群组.002.Result
+      IN  A                          <= 群组.012.Result
+      IN  B                          <= 群组.002.Result
+      OUT Result                     => 混合.A
+      OUT Result                     => 混合.A
+      OUT Result                     => 混合.A
+      OUT Result                     => 混合.A
+
+  NODE '组输入.004'  (NodeGroupInput  [frame:帧.005])
+      OUT Face                       => 映射范围.002.Value
+
+  NODE '漫射 BSDF'  (ShaderNodeBsdfDiffuse)
+      IN  Color                      <= 混合.005.Result
+      IN  Roughness                  =  0
+      IN  Normal                     =  (0, 0, 0)
+      IN  Weight                     =  0
+      ALLIN  Color | Roughness | Normal | Weight
+      ALLOUT BSDF

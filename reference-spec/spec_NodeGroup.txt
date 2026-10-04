@@ -1,0 +1,49 @@
+########################################################################################################
+# GROUP 'NodeGroup'   users=2   nodes=9   links=7
+########################################################################################################
+## INTERFACE
+   OUTPUT NodeSocketColor    Result                             default=(0.8, 0.8, 0.8, 1)
+
+## NODES
+
+  [图像纹理.008] <TexImage label='Body01'>
+       props: projection=FLAT  interpolation=Linear  extension=REPEAT  IMAGE=<?>
+       out Color         (id=Color         ) => 混合.001.B
+
+  [图像纹理.009] <TexImage label='Body01'>
+       props: projection=FLAT  interpolation=Linear  extension=REPEAT  IMAGE=<?>
+       out Color         (id=Color         ) => 混合.B
+
+  [图像纹理.010] <TexImage label='Body01'>
+       props: projection=FLAT  interpolation=Linear  extension=REPEAT  IMAGE=<?>
+       out Color         (id=Color         ) => 混合.A
+
+  [图像纹理.011] <TexImage label='Body01'>
+       props: projection=FLAT  interpolation=Linear  extension=REPEAT  IMAGE=<?>
+       out Color         (id=Color         ) => 混合.002.B
+
+  [组输出] <GroupOutput>
+       in  Result        (id=Socket_0      ) <= 混合.002.Result
+
+  [组输入] <GroupInput>
+
+  [混合] <Mix>
+       props: data_type=RGBA  factor_mode=UNIFORM  blend_type=ADD  clamp_factor=True
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  A             (id=A_Color       ) <= 图像纹理.010.Color
+       in  B             (id=B_Color       ) <= 图像纹理.009.Color
+       out Result        (id=Result_Color  ) => 混合.001.A
+
+  [混合.001] <Mix>
+       props: data_type=RGBA  factor_mode=UNIFORM  blend_type=ADD  clamp_factor=True
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  A             (id=A_Color       ) <= 混合.Result
+       in  B             (id=B_Color       ) <= 图像纹理.008.Color
+       out Result        (id=Result_Color  ) => 混合.002.A
+
+  [混合.002] <Mix>
+       props: data_type=RGBA  factor_mode=UNIFORM  blend_type=ADD  clamp_factor=True
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  A             (id=A_Color       ) <= 混合.001.Result
+       in  B             (id=B_Color       ) <= 图像纹理.011.Color
+       out Result        (id=Result_Color  ) => 组输出.Result

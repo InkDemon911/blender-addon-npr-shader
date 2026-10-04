@@ -1,0 +1,128 @@
+################################################################################################
+# GROUP 'Normalmap'   users=5  nodes=15 links=14
+################################################################################################
+GROUP INTERFACE:
+   OUTPUT NodeSocketColor    Normol Map                         default=(0.8, 0.8, 0.8, 1)
+   OUTPUT NodeSocketFloat    DiffuseBias                        default=0
+   INPUT  NodeSocketFloat    Face                               default=0
+   INPUT  NodeSocketFloat    Body01                             default=0
+   INPUT  NodeSocketFloat    Body                               default=0
+   INPUT  NodeSocketFloat    Hair                               default=0
+   INPUT  NodeSocketFloat    Eyes                               default=0
+
+NODES (with live wiring):
+
+  NODE '组输入'  (NodeGroupInput)
+
+  NODE '组输出'  (NodeGroupOutput)
+      props: is_active_output=True
+      IN  Normol Map                 <= 混合.Result
+      IN  DiffuseBias                <= 分离颜色.Blue
+      IN                             =  -
+
+  NODE '图像纹理'  (ShaderNodeTexImage)
+      props: extension=REPEAT  interpolation=Linear  projection=FLAT
+      IN  Vector                     =  (0, 0, 0)
+      OUT Color                      => 混合.B
+
+  NODE '图像纹理.002'  (ShaderNodeTexImage)
+      props: extension=REPEAT  interpolation=Linear  projection=FLAT
+      IN  Vector                     =  (0, 0, 0)
+      OUT Color                      => 混合.001.B
+
+  NODE '图像纹理.003'  (ShaderNodeTexImage)
+      props: extension=REPEAT  interpolation=Linear  projection=FLAT
+      IN  Vector                     =  (0, 0, 0)
+      OUT Color                      => 混合.003.B
+
+  NODE '图像纹理.004'  (ShaderNodeTexImage)
+      props: extension=REPEAT  interpolation=Linear  projection=FLAT
+      IN  Vector                     =  (0, 0, 0)
+      OUT Color                      => 混合.002.B
+
+  NODE '混合'  (ShaderNodeMix)
+      props: blend_type=MIX  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     <= 组输入.001.Body01
+      IN  Factor                     <= 组输入.001.Body01
+      IN  A                          <= 混合.001.Result
+      IN  B                          <= 图像纹理.Color
+      IN  A                          <= 混合.001.Result
+      IN  B                          <= 图像纹理.Color
+      IN  A                          <= 混合.001.Result
+      IN  B                          <= 图像纹理.Color
+      IN  A                          <= 混合.001.Result
+      IN  B                          <= 图像纹理.Color
+      OUT Result                     => 组输出.Normol Map , 分离颜色.Color
+      OUT Result                     => 组输出.Normol Map , 分离颜色.Color
+      OUT Result                     => 组输出.Normol Map , 分离颜色.Color
+      OUT Result                     => 组输出.Normol Map , 分离颜色.Color
+
+  NODE '组输入.001'  (NodeGroupInput)
+      OUT Body01                     => 混合.Factor
+
+  NODE '组输入.002'  (NodeGroupInput)
+      OUT Hair                       => 混合.001.Factor
+
+  NODE '混合.001'  (ShaderNodeMix)
+      props: blend_type=MIX  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     <= 组输入.002.Hair
+      IN  Factor                     <= 组输入.002.Hair
+      IN  A                          <= 混合.002.Result
+      IN  B                          <= 图像纹理.002.Color
+      IN  A                          <= 混合.002.Result
+      IN  B                          <= 图像纹理.002.Color
+      IN  A                          <= 混合.002.Result
+      IN  B                          <= 图像纹理.002.Color
+      IN  A                          <= 混合.002.Result
+      IN  B                          <= 图像纹理.002.Color
+      OUT Result                     => 混合.A
+      OUT Result                     => 混合.A
+      OUT Result                     => 混合.A
+      OUT Result                     => 混合.A
+
+  NODE '混合.002'  (ShaderNodeMix)
+      props: blend_type=MIX  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     <= 组输入.003.Body
+      IN  Factor                     <= 组输入.003.Body
+      IN  A                          <= 混合.003.Result
+      IN  B                          <= 图像纹理.004.Color
+      IN  A                          <= 混合.003.Result
+      IN  B                          <= 图像纹理.004.Color
+      IN  A                          <= 混合.003.Result
+      IN  B                          <= 图像纹理.004.Color
+      IN  A                          <= 混合.003.Result
+      IN  B                          <= 图像纹理.004.Color
+      OUT Result                     => 混合.001.A
+      OUT Result                     => 混合.001.A
+      OUT Result                     => 混合.001.A
+      OUT Result                     => 混合.001.A
+
+  NODE '组输入.003'  (NodeGroupInput)
+      OUT Body                       => 混合.002.Factor
+
+  NODE '混合.003'  (ShaderNodeMix)
+      props: blend_type=MIX  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     <= 组输入.007.Eyes
+      IN  Factor                     <= 组输入.007.Eyes
+      IN  A                          =  0
+      IN  B                          <= 图像纹理.003.Color
+      IN  A                          =  (0, 0, 0)
+      IN  B                          <= 图像纹理.003.Color
+      IN  A                          =  (0.5, 0.5, 0.5, 1)
+      IN  B                          <= 图像纹理.003.Color
+      IN  A                          =  (0, 0, 0)
+      IN  B                          <= 图像纹理.003.Color
+      OUT Result                     => 混合.002.A
+      OUT Result                     => 混合.002.A
+      OUT Result                     => 混合.002.A
+      OUT Result                     => 混合.002.A
+
+  NODE '组输入.007'  (NodeGroupInput)
+      OUT Eyes                       => 混合.003.Factor
+
+  NODE '分离颜色'  (ShaderNodeSeparateColor)
+      props: mode=RGB
+      IN  Color                      <= 混合.Result
+      OUT Blue                       => 组输出.DiffuseBias
+      ALLIN  Color
+      ALLOUT Red | Green | Blue

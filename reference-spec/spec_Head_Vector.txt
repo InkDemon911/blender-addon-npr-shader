@@ -1,0 +1,64 @@
+########################################################################################################
+# GROUP 'Head Vector'   users=2   nodes=11   links=11
+########################################################################################################
+## INTERFACE
+   OUTPUT NodeSocketVector   Right                              default=(0, 0, 0)
+   OUTPUT NodeSocketVector   Front                              default=(0, 0, 0)
+   OUTPUT NodeSocketVector   Above                              default=(0, 0, 0)
+
+## NODES
+
+  [合并 XYZ] <CombineXYZ>
+
+  [Front] <CombineXYZ label='Front'>
+       in  X             (id=X             ) =  -3.31451e-16
+       in  Y             (id=Y             ) =  -1.01129
+       in  Z             (id=Z             ) =  1.51312
+       out Vector        (id=Vector        ) => 矢量运算.001.Vector
+
+  [合并 XYZ.002] <CombineXYZ label='O'>
+       in  X             (id=X             ) =  -3.31451e-16
+       in  Y             (id=Y             ) =  -0.011286
+       in  Z             (id=Z             ) =  1.51312
+       out Vector        (id=Vector        ) => 矢量运算.001.Vector , 矢量运算.002.Vector
+
+  [合并 XYZ.003] <CombineXYZ label='Right'>
+       in  X             (id=X             ) =  -1
+       in  Y             (id=Y             ) =  -0.011286
+       in  Z             (id=Z             ) =  1.51312
+       out Vector        (id=Vector        ) => 矢量运算.002.Vector
+
+  [矢量运算.001] <VectorMath label='Front'>
+       props: operation=SUBTRACT
+       in  Vector        (id=Vector        ) <= Front.Vector
+       in  Vector        (id=Vector_001    ) <= 合并 XYZ.002.Vector
+       out Vector        (id=Vector        ) => 矢量运算.003.Vector
+
+  [矢量运算.002] <VectorMath label='Right'>
+       props: operation=SUBTRACT
+       in  Vector        (id=Vector        ) <= 合并 XYZ.003.Vector
+       in  Vector        (id=Vector_001    ) <= 合并 XYZ.002.Vector
+       out Vector        (id=Vector        ) => 矢量运算.004.Vector
+
+  [组输出] <GroupOutput>
+       in  Right         (id=Socket_0      ) <= 矢量运算.004.Vector
+       in  Front         (id=Socket_1      ) <= 矢量运算.003.Vector
+       in  Above         (id=Socket_2      ) <= 矢量运算.Vector
+
+  [组输入] <GroupInput>
+
+  [矢量运算] <VectorMath>
+       props: operation=CROSS_PRODUCT
+       in  Vector        (id=Vector        ) <= 矢量运算.004.Vector
+       in  Vector        (id=Vector_001    ) <= 矢量运算.003.Vector
+       out Vector        (id=Vector        ) => 组输出.Above
+
+  [矢量运算.003] <VectorMath>
+       props: operation=NORMALIZE
+       in  Vector        (id=Vector        ) <= 矢量运算.001.Vector
+       out Vector        (id=Vector        ) => 矢量运算.Vector , 组输出.Front
+
+  [矢量运算.004] <VectorMath>
+       props: operation=NORMALIZE
+       in  Vector        (id=Vector        ) <= 矢量运算.002.Vector
+       out Vector        (id=Vector        ) => 矢量运算.Vector , 组输出.Right

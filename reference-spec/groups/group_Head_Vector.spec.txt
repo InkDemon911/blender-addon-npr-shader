@@ -1,0 +1,81 @@
+################################################################################################
+# GROUP 'Head Vector'   users=2  nodes=11 links=11
+################################################################################################
+GROUP INTERFACE:
+   OUTPUT NodeSocketVector   Right                              default=(0, 0, 0)
+   OUTPUT NodeSocketVector   Front                              default=(0, 0, 0)
+   OUTPUT NodeSocketVector   Above                              default=(0, 0, 0)
+
+NODES (with live wiring):
+
+  NODE '合并 XYZ'  (ShaderNodeCombineXYZ)
+      IN  X                          =  0
+      IN  Y                          =  0
+      IN  Z                          =  0
+
+  NODE 'Front'  (ShaderNodeCombineXYZ  label='Front')
+      IN  X                          =  -3.3145e-16
+      IN  Y                          =  -1.0113
+      IN  Z                          =  1.5131
+      OUT Vector                     => 矢量运算.001.Vector
+
+  NODE '合并 XYZ.002'  (ShaderNodeCombineXYZ  label='O')
+      IN  X                          =  -3.3145e-16
+      IN  Y                          =  -0.011286
+      IN  Z                          =  1.5131
+      OUT Vector                     => 矢量运算.001.Vector , 矢量运算.002.Vector
+
+  NODE '合并 XYZ.003'  (ShaderNodeCombineXYZ  label='Right')
+      IN  X                          =  -1
+      IN  Y                          =  -0.011286
+      IN  Z                          =  1.5131
+      OUT Vector                     => 矢量运算.002.Vector
+
+  NODE '矢量运算.001'  (ShaderNodeVectorMath  label='Front')
+      props: operation=SUBTRACT
+      IN  Vector                     <= 合并 XYZ.002.Vector , Front.Vector
+      IN  Vector                     <= 合并 XYZ.002.Vector , Front.Vector
+      IN  Vector                     <= 合并 XYZ.002.Vector , Front.Vector
+      IN  Scale                      =  1
+      OUT Vector                     => 矢量运算.003.Vector
+
+  NODE '矢量运算.002'  (ShaderNodeVectorMath  label='Right')
+      props: operation=SUBTRACT
+      IN  Vector                     <= 合并 XYZ.002.Vector , 合并 XYZ.003.Vector
+      IN  Vector                     <= 合并 XYZ.002.Vector , 合并 XYZ.003.Vector
+      IN  Vector                     <= 合并 XYZ.002.Vector , 合并 XYZ.003.Vector
+      IN  Scale                      =  1
+      OUT Vector                     => 矢量运算.004.Vector
+
+  NODE '组输出'  (NodeGroupOutput)
+      props: is_active_output=True
+      IN  Right                      <= 矢量运算.004.Vector
+      IN  Front                      <= 矢量运算.003.Vector
+      IN  Above                      <= 矢量运算.Vector
+      IN                             =  -
+
+  NODE '组输入'  (NodeGroupInput)
+
+  NODE '矢量运算'  (ShaderNodeVectorMath)
+      props: operation=CROSS_PRODUCT
+      IN  Vector                     <= 矢量运算.004.Vector , 矢量运算.003.Vector
+      IN  Vector                     <= 矢量运算.004.Vector , 矢量运算.003.Vector
+      IN  Vector                     <= 矢量运算.004.Vector , 矢量运算.003.Vector
+      IN  Scale                      =  1
+      OUT Vector                     => 组输出.Above
+
+  NODE '矢量运算.003'  (ShaderNodeVectorMath)
+      props: operation=NORMALIZE
+      IN  Vector                     <= 矢量运算.001.Vector
+      IN  Vector                     <= 矢量运算.001.Vector
+      IN  Vector                     <= 矢量运算.001.Vector
+      IN  Scale                      =  1
+      OUT Vector                     => 矢量运算.Vector , 组输出.Front
+
+  NODE '矢量运算.004'  (ShaderNodeVectorMath)
+      props: operation=NORMALIZE
+      IN  Vector                     <= 矢量运算.002.Vector
+      IN  Vector                     <= 矢量运算.002.Vector
+      IN  Vector                     <= 矢量运算.002.Vector
+      IN  Scale                      =  1
+      OUT Vector                     => 矢量运算.Vector , 组输出.Right

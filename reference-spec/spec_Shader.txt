@@ -1,0 +1,671 @@
+########################################################################################################
+# GROUP 'Shader'   users=39   nodes=111   links=165
+########################################################################################################
+## INTERFACE
+   OUTPUT NodeSocketShader   Emission                           default=-
+   INPUT  NodeSocketFloat    Face                               default=0
+   INPUT  NodeSocketFloat    Body01                             default=0
+   INPUT  NodeSocketFloat    Body                               default=0
+   INPUT  NodeSocketFloat    Hair                               default=0
+   INPUT  NodeSocketFloat    Eyes                               default=0
+   INPUT  NodeSocketFloat    Crystal                            default=0
+
+## NODES
+
+  [群组] <Group >>GROUP:'Head Vector' frame='帧'>
+       out Above         (id=Socket_2      ) => 矢量运算.Vector
+
+  [矢量运算] <VectorMath frame='帧'>
+       props: operation=PROJECT
+       in  Vector        (id=Vector        ) <= 群组.004.Vector
+       in  Vector        (id=Vector_001    ) <= 群组.Above
+       out Vector        (id=Vector        ) => 矢量运算.001.Vector
+
+  [矢量运算.001] <VectorMath frame='帧'>
+       props: operation=SUBTRACT
+       in  Vector        (id=Vector        ) <= 群组.004.Vector
+       in  Vector        (id=Vector_001    ) <= 矢量运算.Vector
+       out Vector        (id=Vector        ) => 矢量运算.002.Vector , 矢量运算.004.Vector
+
+  [矢量运算.002] <VectorMath frame='帧'>
+       props: operation=DOT_PRODUCT
+       in  Vector        (id=Vector        ) <= 矢量运算.001.Vector
+       in  Vector        (id=Vector_001    ) <= 群组.001.Right
+       out Value         (id=Value         ) => 运算.003.Value
+
+  [矢量运算.004] <VectorMath frame='帧'>
+       props: operation=DOT_PRODUCT
+       in  Vector        (id=Vector        ) <= 矢量运算.001.Vector
+       in  Vector        (id=Vector_001    ) <= 群组.001.Front
+       out Value         (id=Value         ) => 运算.001.Value
+
+  [合并 XYZ.002] <CombineXYZ frame='帧'>
+       in  X             (id=X             ) <= 运算.003.Value
+       out Vector        (id=Vector        ) => 矢量运算.005.Vector
+
+  [矢量运算.005] <VectorMath frame='帧'>
+       props: operation=MULTIPLY
+       in  Vector        (id=Vector        ) <= 合并 XYZ.002.Vector
+       in  Vector        (id=Vector_001    ) <= UV 贴图.UV
+       out Vector        (id=Vector        ) => 矢量运算.006.Vector
+
+  [矢量运算.006] <VectorMath frame='帧'>
+       props: operation=MULTIPLY
+       in  Vector        (id=Vector        ) <= 矢量运算.005.Vector
+       in  Vector        (id=Vector_001    ) =  (-1, 1, -5.96046e-08)
+       out Vector        (id=Vector        ) => 图像纹理.Vector
+
+  [运算.001] <Math frame='帧'>
+       props: operation=MULTIPLY_ADD
+       in  Value         (id=Value         ) <= 矢量运算.004.Value
+       in  Value         (id=Value_001     ) =  0.5
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.002.Value
+
+  [运算.003] <Math frame='帧'>
+       props: operation=SIGN
+       in  Value         (id=Value         ) <= 矢量运算.002.Value
+       in  Value         (id=Value_001     ) =  0.5
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 合并 XYZ.002.X
+
+  [群组.001] <Group >>GROUP:'Head Vector' frame='帧'>
+       out Right         (id=Socket_0      ) => 矢量运算.002.Vector
+       out Front         (id=Socket_1      ) => 矢量运算.004.Vector
+
+  [图像纹理] <TexImage frame='帧'>
+       props: projection=FLAT  interpolation=Linear  extension=REPEAT  IMAGE=<?>
+       in  Vector        (id=Vector        ) <= 矢量运算.006.Vector
+       out Alpha         (id=Alpha         ) => 运算.Value
+
+  [运算] <Math frame='帧'>
+       props: operation=GREATER_THAN
+       in  Value         (id=Value         ) <= 图像纹理.Alpha
+       in  Value         (id=Value_001     ) <= 运算.002.Value
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 映射范围.To Max
+
+  [UV 贴图] <UVMap frame='帧'>
+       out UV            (id=UV            ) => 矢量运算.005.Vector
+
+  [运算.002] <Math frame='帧'>
+       props: operation=SUBTRACT
+       in  Value         (id=Value_001     ) <= 运算.001.Value
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.Value
+
+  [帧] <Frame label='SDF'>
+       props: shrink=True  label_size=20
+
+  [组输入] <GroupInput frame='帧.001'>
+       out Face          (id=Socket_1      ) => 群组.002.Face
+       out Body01        (id=Socket_2      ) => 群组.002.Body01
+       out Body          (id=Socket_3      ) => 群组.002.Body
+       out Hair          (id=Socket_5      ) => 群组.002.Hair
+       out Eyes          (id=Socket_10     ) => 群组.002.Eyes
+
+  [群组.002] <Group >>GROUP:'Base Color' frame='帧.001'>
+       in  Face          (id=Socket_0      ) <= 组输入.Face
+       in  Body01        (id=Socket_1      ) <= 组输入.Body01
+       in  Body          (id=Socket_2      ) <= 组输入.Body
+       in  Hair          (id=Socket_3      ) <= 组输入.Hair
+       in  Eyes          (id=Socket_5      ) <= 组输入.Eyes
+       out Result        (id=Socket_4      ) => 混合.013.B , 混合.B
+
+  [混合] <Mix label='Ramp Mask'>
+       props: data_type=RGBA  factor_mode=UNIFORM  blend_type=MIX  clamp_factor=True
+       in  Factor        (id=Factor_Float  ) <= 映射范围.Result
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  A             (id=A_Color       ) <= 混合.013.Result
+       in  B             (id=B_Color       ) <= 群组.002.Result
+       out Result        (id=Result_Color  ) => 混合.007.A
+
+  [映射范围] <MapRange frame='帧.003'>
+       props: clamp=True  interpolation_type=LINEAR  data_type=FLOAT
+       in  Value         (id=Value         ) <= 组输入.001.Face
+       in  To Min        (id=To Min        ) <= 运算.017.Value
+       in  To Max        (id=To Max        ) <= 运算.Value
+       in  Steps         (id=Steps         ) =  4
+       in  Steps         (id=Steps_FLOAT3  ) =  (4, 4, 4)
+       out Result        (id=Result        ) => 混合.Factor , 合并 XYZ.X
+
+  [组输入.001] <GroupInput frame='帧.003'>
+       out Face          (id=Socket_1      ) => 映射范围.Value
+
+  [帧.001] <Frame label='Base Color'>
+       props: shrink=True  label_size=20
+
+  [群组.003] <Group >>GROUP:'Lightmap' frame='帧.002'>
+       in  Face          (id=Socket_4      ) <= 组输入.003.Face
+       in  Body01        (id=Socket_5      ) <= 组输入.003.Body01
+       in  Body          (id=Socket_8      ) <= 组输入.003.Body
+       in  Hair          (id=Socket_6      ) <= 组输入.003.Hair
+       in  Eyes          (id=Socket_7      ) <= 组输入.003.Eyes
+       out 绿             (id=Socket_1      ) => 群组.007.Lightmap.g , 运算.004.Value , 运算.005.Value
+
+  [组输入.003] <GroupInput frame='帧.002'>
+       out Face          (id=Socket_1      ) => 群组.003.Face
+       out Body01        (id=Socket_2      ) => 群组.003.Body01
+       out Body          (id=Socket_3      ) => 群组.003.Body
+       out Hair          (id=Socket_5      ) => 群组.003.Hair
+       out Eyes          (id=Socket_10     ) => 群组.003.Eyes
+
+  [群组.004] <Group >>GROUP:'Light Vecter' frame='帧'>
+       out Vector        (id=Socket_0      ) => 矢量运算.001.Vector , 矢量运算.Vector
+
+  [Light Normol] <Group >>GROUP:'Light Vecter' frame='帧.002'>
+       out Vector        (id=Socket_0      ) => 矢量运算.003.Vector
+
+  [矢量运算.003] <VectorMath frame='帧.002'>
+       props: operation=DOT_PRODUCT
+       in  Vector        (id=Vector        ) <= Light Normol.Vector
+       in  Vector        (id=Vector_001    ) <= 群组.006.Normal
+       out Value         (id=Value         ) => 群组.005.NoL
+
+  [群组.005] <Group >>GROUP:'Lambert' frame='帧.002'>
+       in  NoL           (id=Socket_0      ) <= 矢量运算.003.Value
+       out NoL           (id=Socket_1      ) => 运算.018.Value
+       out NoL*0.5+0.5   (id=Socket_6      ) => 转接点.002.Input
+
+  [矢量运算.007] <VectorMath frame='帧.002'>
+       props: operation=DOT_PRODUCT
+       in  Vector        (id=Vector        ) <= 转接点.001.Output
+       in  Vector        (id=Vector_001    ) <= 群组.007.Lightmap.g
+
+  [节点组] <Group >>GROUP:'Normalmap' frame='帧.002'>
+       in  Face          (id=Socket_1      ) <= 组输入.002.Face
+       in  Body01        (id=Socket_2      ) <= 组输入.002.Body01
+       in  Body          (id=Socket_3      ) <= 组输入.002.Body
+       in  Hair          (id=Socket_4      ) <= 组输入.002.Hair
+       in  Eyes          (id=Socket_5      ) <= 组输入.002.Eyes
+       out Normol Map    (id=Socket_0      ) => 群组.006.Normal
+
+  [组输入.002] <GroupInput frame='帧.002'>
+       out Face          (id=Socket_1      ) => 节点组.Face
+       out Body01        (id=Socket_2      ) => 节点组.Body01
+       out Body          (id=Socket_3      ) => 节点组.Body
+       out Hair          (id=Socket_5      ) => 节点组.Hair
+       out Eyes          (id=Socket_10     ) => 节点组.Eyes
+
+  [群组.006] <Group >>GROUP:'Normalmap Decode' frame='帧.002'>
+       in  Normal        (id=Socket_0      ) <= 节点组.Normol Map
+       out Normal        (id=Socket_4      ) => 矢量运算.003.Vector
+
+  [帧.002] <Frame label='AO'>
+       props: shrink=True  label_size=20
+
+  [群组.007] <Group >>GROUP:'LightmapSmoothStep' frame='帧.002'>
+       in  Lightmap.g    (id=Socket_0      ) <= 群组.003.绿
+       out Lightmap.g    (id=Socket_1      ) => 矢量运算.007.Vector
+       out Smoothstep(0.2,0.3,Lightmap.g)(id=Socket_2      ) => 运算.017.Value
+
+  [运算.004] <Math frame='帧.002'>
+       props: operation=ADD
+       in  Value         (id=Value         ) <= 群组.003.绿
+       in  Value         (id=Value_001     ) =  0.1
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 转接点.007.Input
+
+  [运算.005] <Math frame='帧.002'>
+       props: operation=SUBTRACT
+       in  Value         (id=Value         ) <= 群组.003.绿
+       in  Value         (id=Value_001     ) =  0.1
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 转接点.006.Input
+
+  [映射范围.001] <MapRange frame='帧.002'>
+       props: clamp=True  interpolation_type=LINEAR  data_type=FLOAT
+       in  Value         (id=Value         ) <= 转接点.003.Output
+       in  From Min      (id=From Min      ) <= 转接点.006.Output
+       in  From Max      (id=From Max      ) <= 转接点.007.Output
+       in  Steps         (id=Steps         ) =  4
+       in  Steps         (id=Steps_FLOAT3  ) =  (4, 4, 4)
+
+  [转接点] <Reroute frame='帧.002'>
+       in  Input         (id=Input         ) <= 运算.018.Value
+       out Output        (id=Output        ) => 转接点.001.Input
+
+  [转接点.001] <Reroute frame='帧.002'>
+       in  Input         (id=Input         ) <= 转接点.Output
+       out Output        (id=Output        ) => 矢量运算.007.Vector , 运算.017.Value
+
+  [转接点.002] <Reroute frame='帧.002'>
+       in  Input         (id=Input         ) <= 群组.005.NoL*0.5+0.5
+       out Output        (id=Output        ) => 转接点.003.Input
+
+  [转接点.003] <Reroute frame='帧.002'>
+       in  Input         (id=Input         ) <= 转接点.002.Output
+       out Output        (id=Output        ) => 映射范围.001.Value
+
+  [转接点.006] <Reroute frame='帧.002'>
+       in  Input         (id=Input         ) <= 运算.005.Value
+       out Output        (id=Output        ) => 映射范围.001.From Min
+
+  [转接点.007] <Reroute frame='帧.002'>
+       in  Input         (id=Input         ) <= 运算.004.Value
+       out Output        (id=Output        ) => 映射范围.001.From Max
+
+  [Lightmap] <Group >>GROUP:'Lightmap' frame='帧.004'>
+       in  Face          (id=Socket_4      ) <= 组输入.005.Face
+       in  Body01        (id=Socket_5      ) <= 组输入.005.Body01
+       in  Body          (id=Socket_8      ) <= 组输入.005.Body
+       in  Hair          (id=Socket_6      ) <= 组输入.005.Hair
+       in  Eyes          (id=Socket_7      ) <= 组输入.005.Eyes
+       out 红             (id=Socket_0      ) => 运算.008.Value , 运算.011.Value , 运算.016.Value
+       out 蓝             (id=Socket_2      ) => 运算.007.Value , 运算.009.Value
+
+  [组输入.005] <GroupInput frame='帧.004'>
+       out Face          (id=Socket_1      ) => Lightmap.Face
+       out Body01        (id=Socket_2      ) => Lightmap.Body01
+       out Body          (id=Socket_3      ) => Lightmap.Body
+       out Hair          (id=Socket_5      ) => Lightmap.Hair
+       out Eyes          (id=Socket_10     ) => Lightmap.Eyes
+
+  [运算.006] <Math frame='帧.004'>
+       props: operation=SUBTRACT
+       in  Value         (id=Value         ) =  1.04
+       in  Value         (id=Value_001     ) <= 混合.010.Result
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.007.Value
+
+  [运算.007] <Math frame='帧.004'>
+       props: operation=LESS_THAN
+       in  Value         (id=Value         ) <= 运算.006.Value
+       in  Value         (id=Value_001     ) <= Lightmap.蓝
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.008.Value
+
+  [运算.008] <Math frame='帧.004'>
+       props: operation=MULTIPLY
+       in  Value         (id=Value         ) <= 运算.007.Value
+       in  Value         (id=Value_001     ) <= Lightmap.红
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 混合.002.A
+
+  [运算.009] <Math frame='帧.004'>
+       props: operation=MULTIPLY
+       in  Value         (id=Value         ) <= 混合.010.Result
+       in  Value         (id=Value_001     ) <= Lightmap.蓝
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.010.Value , 运算.020.Value
+
+  [Base Color] <Group >>GROUP:'Base Color' frame='帧.004'>
+       in  Face          (id=Socket_0      ) <= 组输入.006.Face
+       in  Body01        (id=Socket_1      ) <= 组输入.006.Body01
+       in  Body          (id=Socket_2      ) <= 组输入.006.Body
+       in  Hair          (id=Socket_3      ) <= 组输入.006.Hair
+       in  Eyes          (id=Socket_5      ) <= 组输入.006.Eyes
+       out Result        (id=Socket_4      ) => 混合.001.B , 混合.003.A
+
+  [组输入.006] <GroupInput frame='帧.004'>
+       out Face          (id=Socket_1      ) => Base Color.Face
+       out Body01        (id=Socket_2      ) => Base Color.Body01
+       out Body          (id=Socket_3      ) => Base Color.Body
+       out Hair          (id=Socket_5      ) => Base Color.Hair
+       out Eyes          (id=Socket_10     ) => Base Color.Eyes
+
+  [混合.001] <Mix frame='帧.004'>
+       props: data_type=RGBA  factor_mode=UNIFORM  blend_type=MULTIPLY  clamp_factor=True
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  A             (id=A_Color       ) <= 运算.010.Value
+       in  B             (id=B_Color       ) <= Base Color.Result
+       out Result        (id=Result_Color  ) => 混合.002.B
+
+  [运算.010] <Math frame='帧.004'>
+       props: operation=MULTIPLY
+       in  Value         (id=Value         ) <= 运算.009.Value
+       in  Value         (id=Value_001     ) <= 运算.015.Value
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 混合.001.A
+
+  [Light Normol.001] <Group >>GROUP:'Light Vecter' frame='帧.004'>
+       out Vector        (id=Socket_0      ) => 矢量运算.008.Vector
+
+  [矢量运算.008] <VectorMath frame='帧.004'>
+       props: operation=DOT_PRODUCT
+       in  Vector        (id=Vector        ) <= Light Normol.001.Vector
+       in  Vector        (id=Vector_001    ) <= 群组.009.Normal
+       out Value         (id=Value         ) => 群组.008.NoL , 运算.012.Value
+
+  [群组.008] <Group >>GROUP:'Lambert' frame='帧.004'>
+       in  NoL           (id=Socket_0      ) <= 矢量运算.008.Value
+
+  [节点组.001] <Group >>GROUP:'Normalmap' frame='帧.004'>
+       in  Face          (id=Socket_1      ) <= 组输入.007.Face
+       in  Body01        (id=Socket_2      ) <= 组输入.007.Body01
+       in  Body          (id=Socket_3      ) <= 组输入.007.Body
+       in  Hair          (id=Socket_4      ) <= 组输入.007.Hair
+       in  Eyes          (id=Socket_5      ) <= 组输入.007.Eyes
+       out Normol Map    (id=Socket_0      ) => 群组.009.Normal
+
+  [组输入.007] <GroupInput frame='帧.004'>
+       out Face          (id=Socket_1      ) => 节点组.001.Face
+       out Body01        (id=Socket_2      ) => 节点组.001.Body01
+       out Body          (id=Socket_3      ) => 节点组.001.Body
+       out Hair          (id=Socket_5      ) => 节点组.001.Hair
+       out Eyes          (id=Socket_10     ) => 节点组.001.Eyes
+
+  [群组.009] <Group >>GROUP:'Normalmap Decode' frame='帧.004'>
+       in  Normal        (id=Socket_0      ) <= 节点组.001.Normol Map
+       out Normal        (id=Socket_4      ) => 矢量运算.008.Vector
+
+  [混合.002] <Mix frame='帧.004'>
+       props: data_type=RGBA  factor_mode=UNIFORM  blend_type=MIX  clamp_factor=True
+       in  Factor        (id=Factor_Float  ) <= 混合.009.Result
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  A             (id=A_Color       ) <= 运算.008.Value
+       in  B             (id=B_Color       ) <= 混合.001.Result
+       out Result        (id=Result_Color  ) => 混合.004.A
+
+  [运算.011] <Math frame='帧.004'>
+       props: operation=GREATER_THAN
+       in  Value         (id=Value         ) <= Lightmap.红
+       in  Value         (id=Value_001     ) =  0.55
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 混合.004.Factor
+
+  [图像纹理.001] <TexImage frame='帧.004'>
+       props: projection=FLAT  interpolation=Linear  extension=REPEAT  IMAGE=<?>
+       in  Vector        (id=Vector        ) <= 矢量运算.009.Vector
+       out Color         (id=Color         ) => 混合.003.B
+
+  [节点组.002] <Group >>GROUP:'Normalmap' frame='帧.004'>
+       in  Face          (id=Socket_1      ) <= 组输入.008.Face
+       in  Body01        (id=Socket_2      ) <= 组输入.008.Body01
+       in  Body          (id=Socket_3      ) <= 组输入.008.Body
+       in  Hair          (id=Socket_4      ) <= 组输入.008.Hair
+       in  Eyes          (id=Socket_5      ) <= 组输入.008.Eyes
+       out Normol Map    (id=Socket_0      ) => 群组.011.Normal
+
+  [组输入.008] <GroupInput frame='帧.004'>
+       out Face          (id=Socket_1      ) => 节点组.002.Face
+       out Body01        (id=Socket_2      ) => 节点组.002.Body01
+       out Body          (id=Socket_3      ) => 节点组.002.Body
+       out Hair          (id=Socket_5      ) => 节点组.002.Hair
+       out Eyes          (id=Socket_10     ) => 节点组.002.Eyes
+
+  [群组.011] <Group >>GROUP:'Normalmap Decode' frame='帧.004'>
+       in  Normal        (id=Socket_0      ) <= 节点组.002.Normol Map
+       out Normal        (id=Socket_4      ) => 矢量变换.Vector
+
+  [矢量变换] <VectorTransform frame='帧.004'>
+       props: vector_type=VECTOR  convert_from=OBJECT  convert_to=CAMERA
+       in  Vector        (id=Vector        ) <= 群组.011.Normal
+       out Vector        (id=Vector        ) => 矢量运算.009.Vector
+
+  [矢量运算.009] <VectorMath frame='帧.004'>
+       props: operation=MULTIPLY_ADD
+       in  Vector        (id=Vector        ) <= 矢量变换.Vector
+       in  Vector        (id=Vector_001    ) =  (0.5, 0.5, 0)
+       in  Vector        (id=Vector_002    ) =  (0.5, 0.5, 0)
+       out Vector        (id=Vector        ) => 图像纹理.001.Vector
+
+  [混合.003] <Mix frame='帧.004'>
+       props: data_type=RGBA  factor_mode=UNIFORM  blend_type=MULTIPLY  clamp_factor=True
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  A             (id=A_Color       ) <= Base Color.Result
+       in  B             (id=B_Color       ) <= 图像纹理.001.Color
+       out Result        (id=Result_Color  ) => 混合.004.B
+
+  [混合.004] <Mix frame='帧.004'>
+       props: data_type=RGBA  factor_mode=UNIFORM  blend_type=MIX  clamp_factor=True
+       in  Factor        (id=Factor_Float  ) <= 运算.011.Value
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  A             (id=A_Color       ) <= 混合.002.Result
+       in  B             (id=B_Color       ) <= 混合.003.Result
+       out Result        (id=Result_Color  ) => 混合.007.B
+
+  [运算.012] <Math frame='帧.004'>
+       props: operation=MAXIMUM
+       in  Value         (id=Value         ) <= 矢量运算.008.Value
+       in  Value         (id=Value_001     ) =  -5.96046e-08
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.013.Value
+
+  [运算.013] <Math frame='帧.004'>
+       props: operation=MULTIPLY_ADD
+       in  Value         (id=Value         ) <= 运算.012.Value
+       in  Value         (id=Value_001     ) =  0.5
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 运算.014.Value
+
+  [运算.014] <Math frame='帧.004'>
+       props: operation=POWER
+       in  Value         (id=Value         ) <= 运算.013.Value
+       in  Value         (id=Value_001     ) =  2
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => SmoothStep.x
+
+  [SmoothStep] <Group >>GROUP:'SmoothStep' frame='帧.004'>
+       in  t1            (id=Socket_0      ) =  0.423
+       in  t2            (id=Socket_1      ) =  0.45
+       in  x             (id=Socket_2      ) <= 运算.014.Value
+       out Value         (id=Socket_3      ) => 运算.015.Value
+
+  [运算.015] <Math frame='帧.004'>
+       props: operation=MULTIPLY_ADD
+       in  Value         (id=Value         ) <= SmoothStep.Value
+       in  Value         (id=Value_001     ) =  0.5
+       in  Value         (id=Value_002     ) =  0.2
+       out Value         (id=Value         ) => 运算.010.Value
+
+  [混合.007] <Mix>
+       props: data_type=RGBA  factor_mode=UNIFORM  blend_type=ADD  clamp_factor=True
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  A             (id=A_Color       ) <= 混合.Result
+       in  B             (id=B_Color       ) <= 混合.004.Result
+       out Result        (id=Result_Color  ) => 混合.005.A
+
+  [运算.016] <Math frame='帧.004'>
+       props: operation=GREATER_THAN
+       in  Value         (id=Value         ) <= Lightmap.红
+       in  Value         (id=Value_001     ) =  0.7
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 混合.009.B
+
+  [帧.003] <Frame label='AO Mix' frame='帧.005'>
+       props: shrink=True  label_size=20
+
+  [帧.004] <Frame label='Specular'>
+       props: shrink=True  label_size=20
+
+  [群组.012] <Group >>GROUP:'Ramp' frame='帧.005'>
+       in  Face          (id=Socket_1      ) <= 组输入.010.Face
+       in  Body01        (id=Socket_2      ) <= 组输入.010.Body01
+       in  Body          (id=Socket_3      ) <= 组输入.010.Body
+       in  Hair          (id=Socket_4      ) <= 组输入.010.Hair
+       in  Eyes          (id=Socket_5      ) <= 组输入.010.Eyes
+       in  UV            (id=Socket_8      ) <= 合并 XYZ.Vector
+       out Result        (id=Socket_0      ) => 混合.013.A
+
+  [组输入.010] <GroupInput frame='帧.005'>
+       out Face          (id=Socket_1      ) => 群组.012.Face
+       out Body01        (id=Socket_2      ) => 群组.012.Body01
+       out Body          (id=Socket_3      ) => 群组.012.Body
+       out Hair          (id=Socket_5      ) => 群组.012.Hair
+       out Eyes          (id=Socket_10     ) => 群组.012.Eyes
+
+  [Lightmap.001] <Group >>GROUP:'Lightmap' frame='帧.005'>
+       in  Face          (id=Socket_4      ) <= 组输入.011.Face
+       in  Body01        (id=Socket_5      ) <= 组输入.011.Body01
+       in  Body          (id=Socket_8      ) <= 组输入.011.Body
+       in  Hair          (id=Socket_6      ) <= 组输入.011.Hair
+       out Alpha         (id=Socket_3      ) => 群组.013.Mask
+
+  [组输入.011] <GroupInput frame='帧.005'>
+       out Face          (id=Socket_1      ) => Lightmap.001.Face
+       out Body01        (id=Socket_2      ) => Lightmap.001.Body01
+       out Body          (id=Socket_3      ) => Lightmap.001.Body
+       out Hair          (id=Socket_5      ) => Lightmap.001.Hair
+
+  [群组.013] <Group >>GROUP:'Ramp Select' frame='帧.005'>
+       in  Mask          (id=Socket_0      ) <= Lightmap.001.Alpha
+       in  A1            (id=Socket_1      ) =  4
+       in  A2            (id=Socket_2      ) =  3
+       in  A3            (id=Socket_3      ) =  5
+       in  A4            (id=Socket_4      ) =  2
+       out RampV         (id=Socket_6      ) => 映射范围.002.To Min
+
+  [合并 XYZ] <CombineXYZ frame='帧.005'>
+       in  X             (id=X             ) <= 映射范围.Result
+       in  Y             (id=Y             ) <= 映射范围.002.Result
+       out Vector        (id=Vector        ) => 群组.012.UV
+
+  [运算.017] <Math frame='帧.002'>
+       props: operation=MULTIPLY
+       in  Value         (id=Value         ) <= 转接点.001.Output
+       in  Value         (id=Value_001     ) <= 群组.007.Smoothstep(0.2,0.3,Lightmap.g)
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 映射范围.To Min
+
+  [Normalmap] <Group >>GROUP:'Normalmap' frame='帧.002'>
+       in  Face          (id=Socket_1      ) <= 组输入.012.Face
+       in  Body01        (id=Socket_2      ) <= 组输入.012.Body01
+       in  Body          (id=Socket_3      ) <= 组输入.012.Body
+       in  Hair          (id=Socket_4      ) <= 组输入.012.Hair
+       in  Eyes          (id=Socket_5      ) <= 组输入.012.Eyes
+       out DiffuseBias   (id=Socket_6      ) => 运算.018.Value
+
+  [组输入.012] <GroupInput frame='帧.002'>
+       out Face          (id=Socket_1      ) => Normalmap.Face
+       out Body01        (id=Socket_2      ) => Normalmap.Body01
+       out Body          (id=Socket_3      ) => Normalmap.Body
+       out Hair          (id=Socket_5      ) => Normalmap.Hair
+       out Eyes          (id=Socket_10     ) => Normalmap.Eyes
+
+  [运算.018] <Math frame='帧.002'>
+       props: operation=ADD  use_clamp=True
+       in  Value         (id=Value         ) <= 群组.005.NoL
+       in  Value         (id=Value_001     ) <= Normalmap.DiffuseBias
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 转接点.Input
+
+  [映射范围.002] <MapRange frame='帧.005'>
+       props: clamp=True  interpolation_type=LINEAR  data_type=FLOAT
+       in  Value         (id=Value         ) <= 组输入.004.Face
+       in  To Min        (id=To Min        ) <= 群组.013.RampV
+       in  To Max        (id=To Max        ) =  0.35
+       in  Steps         (id=Steps         ) =  4
+       in  Steps         (id=Steps_FLOAT3  ) =  (4, 4, 4)
+       out Result        (id=Result        ) => 合并 XYZ.Y
+
+  [帧.005] <Frame label='Ramp'>
+       props: shrink=True  label_size=20
+
+  [层权重] <LayerWeight frame='帧.006'>
+       in  Blend         (id=Blend         ) =  0.5
+       out Facing        (id=Facing        ) => 运算.019.Value
+
+  [运算.019] <Math frame='帧.006'>
+       props: operation=POWER
+       in  Value         (id=Value         ) <= 层权重.Facing
+       in  Value         (id=Value_001     ) =  4.8
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 混合着色器.Factor
+
+  [自发光.001] <Emission frame='帧.006'>
+       in  Color         (id=Color         ) <= Base Color.001.Result
+       out Emission      (id=Emission      ) => 混合着色器.Shader
+
+  [混合着色器] <MixShader frame='帧.006'>
+       in  Factor        (id=Fac           ) <= 运算.019.Value
+       in  Shader        (id=Shader        ) =  -
+       in  Shader        (id=Shader_001    ) <= 自发光.001.Emission
+       out Shader        (id=Shader        ) => 着色器 转 RGB.Shader
+
+  [帧.006] <Frame label='Rim'>
+       props: shrink=True  label_size=20
+
+  [着色器 转 RGB] <ShaderToRGB frame='帧.006'>
+       in  Shader        (id=Shader        ) <= 混合着色器.Shader
+       out Color         (id=Color         ) => 混合.005.B
+
+  [混合.005] <Mix>
+       props: data_type=RGBA  factor_mode=UNIFORM  blend_type=ADD  clamp_factor=True
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  A             (id=A_Color       ) <= 混合.007.Result
+       in  B             (id=B_Color       ) <= 着色器 转 RGB.Color
+       out Result        (id=Result_Color  ) => 自发光.Color , 漫射 BSDF.Color
+
+  [Base Color.001] <Group >>GROUP:'Base Color' frame='帧.006'>
+       in  Face          (id=Socket_0      ) <= 组输入.013.Face
+       in  Body01        (id=Socket_1      ) <= 组输入.013.Body01
+       in  Body          (id=Socket_2      ) <= 组输入.013.Body
+       in  Hair          (id=Socket_3      ) <= 组输入.013.Hair
+       in  Eyes          (id=Socket_5      ) <= 组输入.013.Eyes
+       out Result        (id=Socket_4      ) => 自发光.001.Color
+
+  [组输入.013] <GroupInput frame='帧.006'>
+       out Face          (id=Socket_1      ) => Base Color.001.Face
+       out Body01        (id=Socket_2      ) => Base Color.001.Body01
+       out Body          (id=Socket_3      ) => Base Color.001.Body
+       out Hair          (id=Socket_5      ) => Base Color.001.Hair
+       out Eyes          (id=Socket_10     ) => Base Color.001.Eyes
+
+  [组输入.014] <GroupInput frame='帧.004'>
+       out Crystal       (id=Socket_13     ) => 混合.009.Factor
+
+  [运算.020] <Math frame='帧.004'>
+       props: operation=GREATER_THAN
+       in  Value         (id=Value         ) <= 运算.009.Value
+       in  Value         (id=Value_001     ) =  0.2
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 混合.009.A
+
+  [混合.009] <Mix frame='帧.004'>
+       props: data_type=FLOAT  factor_mode=UNIFORM  blend_type=COLOR  clamp_factor=True
+       in  Factor        (id=Factor_Float  ) <= 组输入.014.Crystal
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  A             (id=A_Float       ) <= 运算.020.Value
+       in  B             (id=B_Float       ) <= 运算.016.Value
+       in  A             (id=A_Color       ) =  (0.5, 0.5, 0.5, 1)
+       in  B             (id=B_Color       ) =  (0.5, 0.5, 0.5, 1)
+       out Result        (id=Result_Float  ) => 混合.002.Factor
+
+  [组输入.015] <GroupInput frame='帧.004'>
+       out Face          (id=Socket_1      ) => 群组.014.Face
+       out Body01        (id=Socket_2      ) => 群组.014.Body01
+       out Body          (id=Socket_3      ) => 群组.014.Body
+       out Hair          (id=Socket_5      ) => 群组.014.Hair
+       out Eyes          (id=Socket_10     ) => 群组.014.Eyes
+
+  [群组.014] <Group >>GROUP:'Blinn-Phong' frame='帧.004'>
+       in  Face          (id=Socket_0      ) <= 组输入.015.Face
+       in  Body01        (id=Socket_1      ) <= 组输入.015.Body01
+       in  Body          (id=Socket_2      ) <= 组输入.015.Body
+       in  Hair          (id=Socket_3      ) <= 组输入.015.Hair
+       in  Eyes          (id=Socket_4      ) <= 组输入.015.Eyes
+       in  Gloss         (id=Socket_6      ) =  5
+       out Blinn-Phong   (id=Socket_5      ) => 混合.010.B
+
+  [混合.010] <Mix frame='帧.004'>
+       props: data_type=FLOAT  factor_mode=UNIFORM  blend_type=MIX  clamp_factor=True
+       in  Factor        (id=Factor_Float  ) <= 组输入.016.Crystal
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  B             (id=B_Float       ) <= 群组.014.Blinn-Phong
+       in  A             (id=A_Color       ) =  (0.5, 0.5, 0.5, 1)
+       in  B             (id=B_Color       ) =  (0.5, 0.5, 0.5, 1)
+       out Result        (id=Result_Float  ) => 运算.006.Value , 运算.009.Value
+
+  [组输入.016] <GroupInput frame='帧.004'>
+       out Crystal       (id=Socket_13     ) => 混合.010.Factor
+
+  [自发光] <Emission>
+       in  Color         (id=Color         ) <= 混合.005.Result
+       out Emission      (id=Emission      ) => 组输出.Emission
+
+  [组输出] <GroupOutput>
+       in  Emission      (id=Socket_6      ) <= 自发光.Emission
+
+  [混合.013] <Mix label='Ramp*Col'>
+       props: data_type=RGBA  factor_mode=UNIFORM  blend_type=MULTIPLY  clamp_factor=True
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  A             (id=A_Color       ) <= 群组.012.Result
+       in  B             (id=B_Color       ) <= 群组.002.Result
+       out Result        (id=Result_Color  ) => 混合.A
+
+  [组输入.004] <GroupInput frame='帧.005'>
+       out Face          (id=Socket_1      ) => 映射范围.002.Value
+
+  [漫射 BSDF] <BsdfDiffuse>
+       in  Color         (id=Color         ) <= 混合.005.Result

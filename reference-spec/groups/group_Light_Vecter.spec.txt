@@ -1,0 +1,37 @@
+################################################################################################
+# GROUP 'Light Vecter'   users=4  nodes=5 links=3
+################################################################################################
+GROUP INTERFACE:
+   OUTPUT NodeSocketVector   Vector                             default=(0, 0, 0)
+
+NODES (with live wiring):
+
+  NODE '合并 XYZ.001'  (ShaderNodeCombineXYZ)
+      IN  X                          =  0
+      IN  Y                          =  0
+      IN  Z                          =  1
+      OUT Vector                     => 矢量旋转.Vector
+
+  NODE '矢量旋转'  (ShaderNodeVectorRotate)
+      props: rotation_type=EULER_XYZ
+      IN  Vector                     <= 合并 XYZ.001.Vector
+      IN  Center                     =  (0, 0, 0)
+      IN  Axis                       =  (0, 0, 1)
+      IN  Angle                      =  0
+      IN  Rotation                   <= 合并 XYZ.Vector
+      OUT Vector                     => 组输出.Vector
+      ALLIN  Vector | Center | Axis | Angle | Rotation
+      ALLOUT Vector
+
+  NODE '合并 XYZ'  (ShaderNodeCombineXYZ)
+      IN  X                          =  -0.34177
+      IN  Y                          =  0.67079
+      IN  Z                          =  -140.36
+      OUT Vector                     => 矢量旋转.Rotation
+
+  NODE '组输出'  (NodeGroupOutput)
+      props: is_active_output=True
+      IN  Vector                     <= 矢量旋转.Vector
+      IN                             =  -
+
+  NODE '组输入'  (NodeGroupInput)

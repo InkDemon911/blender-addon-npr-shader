@@ -1,0 +1,42 @@
+################################################################################################
+# GROUP 'Camera Vecter'   users=1  nodes=6 links=4
+################################################################################################
+GROUP INTERFACE:
+   OUTPUT NodeSocketVector   Vector                             default=(0, 0, 0)
+
+NODES (with live wiring):
+
+  NODE '摄像机数据'  (ShaderNodeCameraData)
+      OUT View Vector                => 矢量运算.008.Vector
+      ALLIN  
+      ALLOUT View Vector | View Z Depth | View Distance
+
+  NODE '矢量运算.008'  (ShaderNodeVectorMath)
+      props: operation=MULTIPLY
+      IN  Vector                     <= 摄像机数据.View Vector
+      IN  Vector                     <= 摄像机数据.View Vector
+      IN  Vector                     <= 摄像机数据.View Vector
+      IN  Scale                      =  1
+      OUT Vector                     => 矢量变换.Vector
+
+  NODE '矢量变换'  (ShaderNodeVectorTransform)
+      props: convert_from=CAMERA  convert_to=WORLD  vector_type=VECTOR
+      IN  Vector                     <= 矢量运算.008.Vector
+      OUT Vector                     => 矢量运算.009.Vector
+      ALLIN  Vector
+      ALLOUT Vector
+
+  NODE '矢量运算.009'  (ShaderNodeVectorMath)
+      props: operation=NORMALIZE
+      IN  Vector                     <= 矢量变换.Vector
+      IN  Vector                     <= 矢量变换.Vector
+      IN  Vector                     <= 矢量变换.Vector
+      IN  Scale                      =  1
+      OUT Vector                     => 组输出.Vector
+
+  NODE '组输出'  (NodeGroupOutput)
+      props: is_active_output=True
+      IN  Vector                     <= 矢量运算.009.Vector
+      IN                             =  -
+
+  NODE '组输入'  (NodeGroupInput)

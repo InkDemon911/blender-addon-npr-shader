@@ -1,0 +1,84 @@
+########################################################################################################
+# GROUP 'Normalmap'   users=5   nodes=15   links=14
+########################################################################################################
+## INTERFACE
+   OUTPUT NodeSocketColor    Normol Map                         default=(0.8, 0.8, 0.8, 1)
+   OUTPUT NodeSocketFloat    DiffuseBias                        default=0
+   INPUT  NodeSocketFloat    Face                               default=0
+   INPUT  NodeSocketFloat    Body01                             default=0
+   INPUT  NodeSocketFloat    Body                               default=0
+   INPUT  NodeSocketFloat    Hair                               default=0
+   INPUT  NodeSocketFloat    Eyes                               default=0
+
+## NODES
+
+  [组输入] <GroupInput>
+
+  [组输出] <GroupOutput>
+       in  Normol Map    (id=Socket_0      ) <= 混合.Result
+       in  DiffuseBias   (id=Socket_6      ) <= 分离颜色.Blue
+
+  [图像纹理] <TexImage>
+       props: projection=FLAT  interpolation=Linear  extension=REPEAT  IMAGE=<?>
+       out Color         (id=Color         ) => 混合.B
+
+  [图像纹理.002] <TexImage>
+       props: projection=FLAT  interpolation=Linear  extension=REPEAT  IMAGE=<?>
+       out Color         (id=Color         ) => 混合.001.B
+
+  [图像纹理.003] <TexImage>
+       props: projection=FLAT  interpolation=Linear  extension=REPEAT  IMAGE=<?>
+       out Color         (id=Color         ) => 混合.003.B
+
+  [图像纹理.004] <TexImage>
+       props: projection=FLAT  interpolation=Linear  extension=REPEAT  IMAGE=<?>
+       out Color         (id=Color         ) => 混合.002.B
+
+  [混合] <Mix>
+       props: data_type=RGBA  factor_mode=UNIFORM  blend_type=MIX  clamp_factor=True
+       in  Factor        (id=Factor_Float  ) <= 组输入.001.Body01
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  A             (id=A_Color       ) <= 混合.001.Result
+       in  B             (id=B_Color       ) <= 图像纹理.Color
+       out Result        (id=Result_Color  ) => 组输出.Normol Map , 分离颜色.Color
+
+  [组输入.001] <GroupInput>
+       out Body01        (id=Socket_2      ) => 混合.Factor
+
+  [组输入.002] <GroupInput>
+       out Hair          (id=Socket_4      ) => 混合.001.Factor
+
+  [混合.001] <Mix>
+       props: data_type=RGBA  factor_mode=UNIFORM  blend_type=MIX  clamp_factor=True
+       in  Factor        (id=Factor_Float  ) <= 组输入.002.Hair
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  A             (id=A_Color       ) <= 混合.002.Result
+       in  B             (id=B_Color       ) <= 图像纹理.002.Color
+       out Result        (id=Result_Color  ) => 混合.A
+
+  [混合.002] <Mix>
+       props: data_type=RGBA  factor_mode=UNIFORM  blend_type=MIX  clamp_factor=True
+       in  Factor        (id=Factor_Float  ) <= 组输入.003.Body
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  A             (id=A_Color       ) <= 混合.003.Result
+       in  B             (id=B_Color       ) <= 图像纹理.004.Color
+       out Result        (id=Result_Color  ) => 混合.001.A
+
+  [组输入.003] <GroupInput>
+       out Body          (id=Socket_3      ) => 混合.002.Factor
+
+  [混合.003] <Mix>
+       props: data_type=RGBA  factor_mode=UNIFORM  blend_type=MIX  clamp_factor=True
+       in  Factor        (id=Factor_Float  ) <= 组输入.007.Eyes
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  A             (id=A_Color       ) =  (0.5, 0.5, 0.5, 1)
+       in  B             (id=B_Color       ) <= 图像纹理.003.Color
+       out Result        (id=Result_Color  ) => 混合.002.A
+
+  [组输入.007] <GroupInput>
+       out Eyes          (id=Socket_5      ) => 混合.003.Factor
+
+  [分离颜色] <SeparateColor>
+       props: mode=RGB
+       in  Color         (id=Color         ) <= 混合.Result
+       out Blue          (id=Blue          ) => 组输出.DiffuseBias

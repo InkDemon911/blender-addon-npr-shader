@@ -1,0 +1,74 @@
+################################################################################################
+# GROUP 'Lambert'   users=2  nodes=9 links=13
+################################################################################################
+GROUP INTERFACE:
+   OUTPUT NodeSocketFloat    NoL                                default=0
+   OUTPUT NodeSocketFloat    Max(0,NoL)                         default=0
+   OUTPUT NodeSocketFloat    Pow(NoL*0.5+0.5,2)                 default=0
+   OUTPUT NodeSocketFloat    Pow(MAx(0,NoL)*0.5+0.5,2)          default=0
+   OUTPUT NodeSocketFloat    NoL*0.5+0.5                        default=0
+   OUTPUT NodeSocketFloat    Smoothstepk(0,0.14,NoL+0.5)        default=0
+   INPUT  NodeSocketFloat    NoL                                default=0
+
+NODES (with live wiring):
+
+  NODE '组输入'  (NodeGroupInput)
+      OUT NoL                        => 组输出.NoL , 运算.Value , 运算.001.Value , 运算.005.Value
+
+  NODE '组输出'  (NodeGroupOutput)
+      props: is_active_output=True
+      IN  NoL                        <= 组输入.NoL
+      IN  Max(0,NoL)                 <= 运算.Value
+      IN  Pow(NoL*0.5+0.5,2)         <= 运算.002.Value
+      IN  Pow(MAx(0,NoL)*0.5+0.5,2)  <= 运算.004.Value
+      IN  NoL*0.5+0.5                <= 运算.001.Value
+      IN  Smoothstepk(0,0.14,NoL+0.5) <= Smoothstep.Value
+      IN                             =  -
+
+  NODE '运算'  (ShaderNodeMath)
+      props: operation=MAXIMUM
+      IN  Value                      <= 组输入.NoL
+      IN  Value                      <= 组输入.NoL
+      IN  Value                      <= 组输入.NoL
+      OUT Value                      => 组输出.Max(0,NoL) , 运算.003.Value
+
+  NODE '运算.001'  (ShaderNodeMath)
+      props: operation=MULTIPLY_ADD
+      IN  Value                      <= 组输入.NoL
+      IN  Value                      <= 组输入.NoL
+      IN  Value                      <= 组输入.NoL
+      OUT Value                      => 运算.002.Value , 组输出.NoL*0.5+0.5
+
+  NODE '运算.002'  (ShaderNodeMath)
+      props: operation=POWER
+      IN  Value                      <= 运算.001.Value
+      IN  Value                      <= 运算.001.Value
+      IN  Value                      <= 运算.001.Value
+      OUT Value                      => 组输出.Pow(NoL*0.5+0.5,2)
+
+  NODE '运算.003'  (ShaderNodeMath)
+      props: operation=MULTIPLY_ADD
+      IN  Value                      <= 运算.Value
+      IN  Value                      <= 运算.Value
+      IN  Value                      <= 运算.Value
+      OUT Value                      => 运算.004.Value
+
+  NODE '运算.004'  (ShaderNodeMath)
+      props: operation=POWER
+      IN  Value                      <= 运算.003.Value
+      IN  Value                      <= 运算.003.Value
+      IN  Value                      <= 运算.003.Value
+      OUT Value                      => 组输出.Pow(MAx(0,NoL)*0.5+0.5,2)
+
+  NODE 'Smoothstep'  (ShaderNodeGroup  >>GROUP:SmoothStep)
+      IN  t1                         =  0
+      IN  t2                         =  1.14
+      IN  x                          <= 运算.005.Value
+      OUT Value                      => 组输出.Smoothstepk(0,0.14,NoL+0.5)
+
+  NODE '运算.005'  (ShaderNodeMath)
+      props: operation=ADD
+      IN  Value                      <= 组输入.NoL
+      IN  Value                      <= 组输入.NoL
+      IN  Value                      <= 组输入.NoL
+      OUT Value                      => Smoothstep.x

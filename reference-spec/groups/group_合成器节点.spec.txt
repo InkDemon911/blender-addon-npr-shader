@@ -1,0 +1,67 @@
+################################################################################################
+# GROUP '合成器节点'   users=1  nodes=6 links=6
+################################################################################################
+GROUP INTERFACE:
+   OUTPUT NodeSocketColor    图像                                 default=(0, 0, 0, 1)
+   INPUT  NodeSocketColor    图像                                 default=(0, 0, 0, 1)
+
+NODES (with live wiring):
+
+  NODE '组输出'  (NodeGroupOutput)
+      props: is_active_output=True
+      IN  图像                         <= 转接点.Output
+      IN                             =  -
+
+  NODE '渲染层'  (CompositorNodeRLayers)
+      props: layer=ViewLayer
+      OUT Image                      => 转接点.Input , 眩光.Image , Alpha上叠.Background
+      ALLIN  
+      ALLOUT Image | Alpha
+
+  NODE '转接点'  (NodeReroute)
+      props: socket_idname=NodeSocketColor
+      IN  Input                      <= 渲染层.Image
+      OUT Output                     => 组输出.图像 , 预览器.Image
+      ALLIN  Input
+      ALLOUT Output
+
+  NODE '预览器'  (CompositorNodeViewer)
+      IN  Image                      <= 转接点.Output
+      ALLIN  Image
+      ALLOUT 
+
+  NODE '眩光'  (CompositorNodeGlare)
+      IN  Image                      <= 渲染层.Image
+      IN  Type                       =  Bloom
+      IN  Quality                    =  High
+      IN  Threshold                  =  1
+      IN  Smoothness                 =  0.1
+      IN  Clamp                      =  False
+      IN  Maximum                    =  10
+      IN  Strength                   =  1
+      IN  Saturation                 =  1
+      IN  Tint                       =  (1, 1, 1, 1)
+      IN  Size                       =  1
+      IN  Streaks                    =  4
+      IN  Streaks Angle              =  0
+      IN  Iterations                 =  3
+      IN  Fade                       =  0.9
+      IN  Color Modulation           =  0.25
+      IN  Diagonal                   =  True
+      IN  Sun Position               =  (0.5, 0.5)
+      IN  Jitter                     =  0
+      IN  Kernel Data Type           =  Float
+      IN  Kernel                     =  0
+      IN  Kernel                     =  (0.8, 0.8, 0.8, 1)
+      OUT Glare                      => Alpha上叠.Foreground
+      ALLIN  Image | Type | Quality | Threshold | Smoothness | Clamp | Maximum | Strength | Saturation | Tint | Size | Streaks | Streaks Angle | Iterations | Fade | Color Modulation | Diagonal | Sun Position | Jitter | Kernel Data Type | Kernel | Kernel
+      ALLOUT Image | Glare | Highlights
+
+  NODE 'Alpha上叠'  (CompositorNodeAlphaOver)
+      IN  Background                 <= 渲染层.Image
+      IN  Foreground                 <= 眩光.Glare
+      IN  Factor                     =  1
+      IN  Type                       =  Over
+      IN  Straight Alpha             =  False
+      ALLIN  Background | Foreground | Factor | Type | Straight Alpha
+      ALLOUT Image

@@ -1,0 +1,82 @@
+################################################################################################
+# GROUP 'Blinn-Phong'   users=1  nodes=11 links=15
+################################################################################################
+GROUP INTERFACE:
+   OUTPUT NodeSocketFloat    Blinn-Phong                        default=0
+   INPUT  NodeSocketFloat    Face                               default=0
+   INPUT  NodeSocketFloat    Body01                             default=0
+   INPUT  NodeSocketFloat    Body                               default=0
+   INPUT  NodeSocketFloat    Hair                               default=0
+   INPUT  NodeSocketFloat    Eyes                               default=0
+   INPUT  NodeSocketFloat    Gloss                              default=0
+
+NODES (with live wiring):
+
+  NODE '群组.008'  (ShaderNodeGroup  >>GROUP:Camera Vecter)
+      OUT Vector                     => 矢量运算.008.Vector
+
+  NODE 'Light Vecter'  (ShaderNodeGroup  >>GROUP:Light Vecter)
+      OUT Vector                     => 矢量运算.008.Vector
+
+  NODE '矢量运算.008'  (ShaderNodeVectorMath)
+      props: operation=ADD
+      IN  Vector                     <= 群组.008.Vector , Light Vecter.Vector
+      IN  Vector                     <= 群组.008.Vector , Light Vecter.Vector
+      IN  Vector                     <= 群组.008.Vector , Light Vecter.Vector
+      IN  Scale                      =  1
+      OUT Vector                     => 矢量运算.009.Vector
+
+  NODE '矢量运算.009'  (ShaderNodeVectorMath)
+      props: operation=NORMALIZE
+      IN  Vector                     <= 矢量运算.008.Vector
+      IN  Vector                     <= 矢量运算.008.Vector
+      IN  Vector                     <= 矢量运算.008.Vector
+      IN  Scale                      =  1
+      OUT Vector                     => 矢量运算.010.Vector
+
+  NODE '矢量运算.010'  (ShaderNodeVectorMath)
+      props: operation=DOT_PRODUCT
+      IN  Vector                     <= 矢量运算.009.Vector , 群组.009.Normal
+      IN  Vector                     <= 矢量运算.009.Vector , 群组.009.Normal
+      IN  Vector                     <= 矢量运算.009.Vector , 群组.009.Normal
+      IN  Scale                      =  1
+      OUT Value                      => 运算.006.Value
+
+  NODE '节点组.001'  (ShaderNodeGroup  >>GROUP:Normalmap)
+      IN  Face                       <= 组输入.Face
+      IN  Body01                     <= 组输入.Body01
+      IN  Body                       <= 组输入.Body
+      IN  Hair                       <= 组输入.Hair
+      IN  Eyes                       <= 组输入.Eyes
+      OUT Normol Map                 => 群组.009.Normal
+
+  NODE '运算.007'  (ShaderNodeMath)
+      props: operation=POWER
+      IN  Value                      <= 运算.006.Value , 组输入.Gloss
+      IN  Value                      <= 运算.006.Value , 组输入.Gloss
+      IN  Value                      <= 运算.006.Value , 组输入.Gloss
+      OUT Value                      => 组输出.Blinn-Phong
+
+  NODE '群组.009'  (ShaderNodeGroup  >>GROUP:Normalmap Decode)
+      IN  Normal                     <= 节点组.001.Normol Map
+      OUT Normal                     => 矢量运算.010.Vector
+
+  NODE '运算.006'  (ShaderNodeMath)
+      props: operation=MAXIMUM
+      IN  Value                      <= 矢量运算.010.Value
+      IN  Value                      <= 矢量运算.010.Value
+      IN  Value                      <= 矢量运算.010.Value
+      OUT Value                      => 运算.007.Value
+
+  NODE '组输出'  (NodeGroupOutput)
+      props: is_active_output=True
+      IN  Blinn-Phong                <= 运算.007.Value
+      IN                             =  -
+
+  NODE '组输入'  (NodeGroupInput)
+      OUT Face                       => 节点组.001.Face
+      OUT Body01                     => 节点组.001.Body01
+      OUT Body                       => 节点组.001.Body
+      OUT Hair                       => 节点组.001.Hair
+      OUT Eyes                       => 节点组.001.Eyes
+      OUT Gloss                      => 运算.007.Value

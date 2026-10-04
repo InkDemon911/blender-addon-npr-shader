@@ -1,0 +1,317 @@
+################################################################################################
+# GROUP 'Base Color'   users=3  nodes=35 links=37
+################################################################################################
+GROUP INTERFACE:
+   OUTPUT NodeSocketColor    Result                             default=(0.8, 0.8, 0.8, 1)
+   OUTPUT NodeSocketFloat    Result                             default=0
+   INPUT  NodeSocketFloat    Face                               default=0
+   INPUT  NodeSocketFloat    Body01                             default=0
+   INPUT  NodeSocketFloat    Body                               default=0
+   INPUT  NodeSocketFloat    Hair                               default=0
+   INPUT  NodeSocketFloat    Eyes                               default=0
+
+NODES (with live wiring):
+
+  NODE '图像纹理.001'  (ShaderNodeTexImage  label='Body')
+      props: extension=REPEAT  interpolation=Linear  projection=FLAT
+      IN  Vector                     =  (0, 0, 0)
+      OUT Color                      => 混合.001.B
+      OUT Alpha                      => 映射范围.001.To Max
+
+  NODE '图像纹理.002'  (ShaderNodeTexImage  label='Body01')
+      props: extension=REPEAT  interpolation=Linear  projection=FLAT
+      IN  Vector                     =  (0, 0, 0)
+      OUT Color                      => 混合.007.B
+      OUT Alpha                      => 映射范围.002.To Max
+
+  NODE '图像纹理.003'  (ShaderNodeTexImage  label='Face')
+      props: extension=REPEAT  interpolation=Linear  projection=FLAT
+      IN  Vector                     =  (0, 0, 0)
+      OUT Color                      => 混合.004.B
+      OUT Alpha                      => 映射范围.003.To Max
+
+  NODE '图像纹理.004'  (ShaderNodeTexImage  label='Hair')
+      props: extension=REPEAT  interpolation=Linear  projection=FLAT
+      IN  Vector                     =  (0, 0, 0)
+      OUT Color                      => 混合.B
+      OUT Alpha                      => 映射范围.To Max
+
+  NODE '组输出'  (NodeGroupOutput)
+      props: is_active_output=True
+      IN  Result                     <= 混合.002.Result , 映射范围.Result
+      IN  Result                     <= 混合.002.Result , 映射范围.Result
+      IN                             =  -
+
+  NODE '组输入'  (NodeGroupInput)
+      OUT Hair                       => 混合.Factor
+
+  NODE '混合'  (ShaderNodeMix)
+      props: blend_type=MIX  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     <= 组输入.Hair
+      IN  Factor                     <= 组输入.Hair
+      IN  A                          <= 混合.001.Result
+      IN  B                          <= 图像纹理.004.Color
+      IN  A                          <= 混合.001.Result
+      IN  B                          <= 图像纹理.004.Color
+      IN  A                          <= 混合.001.Result
+      IN  B                          <= 图像纹理.004.Color
+      IN  A                          <= 混合.001.Result
+      IN  B                          <= 图像纹理.004.Color
+      OUT Result                     => 混合.002.A
+      OUT Result                     => 混合.002.A
+      OUT Result                     => 混合.002.A
+      OUT Result                     => 混合.002.A
+
+  NODE '混合.001'  (ShaderNodeMix)
+      props: blend_type=MIX  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     <= 组输入.001.Body
+      IN  Factor                     <= 组输入.001.Body
+      IN  A                          <= 混合.003.Result
+      IN  B                          <= 图像纹理.001.Color
+      IN  A                          <= 混合.003.Result
+      IN  B                          <= 图像纹理.001.Color
+      IN  A                          <= 混合.003.Result
+      IN  B                          <= 图像纹理.001.Color
+      IN  A                          <= 混合.003.Result
+      IN  B                          <= 图像纹理.001.Color
+      OUT Result                     => 混合.A
+      OUT Result                     => 混合.A
+      OUT Result                     => 混合.A
+      OUT Result                     => 混合.A
+
+  NODE '混合.003'  (ShaderNodeMix)
+      props: blend_type=MIX  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     <= 组输入.002.Body01
+      IN  Factor                     <= 组输入.002.Body01
+      IN  A                          <= 混合.004.Result
+      IN  B                          <= 混合.007.Result
+      IN  A                          <= 混合.004.Result
+      IN  B                          <= 混合.007.Result
+      IN  A                          <= 混合.004.Result
+      IN  B                          <= 混合.007.Result
+      IN  A                          <= 混合.004.Result
+      IN  B                          <= 混合.007.Result
+      OUT Result                     => 混合.001.A
+      OUT Result                     => 混合.001.A
+      OUT Result                     => 混合.001.A
+      OUT Result                     => 混合.001.A
+
+  NODE '组输入.001'  (NodeGroupInput)
+      OUT Body                       => 混合.001.Factor
+
+  NODE '组输入.002'  (NodeGroupInput)
+      OUT Body01                     => 混合.003.Factor
+
+  NODE '混合.002'  (ShaderNodeMix)
+      props: blend_type=MIX  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     <= 组输入.003.Eyes
+      IN  Factor                     <= 组输入.003.Eyes
+      IN  A                          <= 混合.Result
+      IN  B                          <= 图像纹理.007.Color
+      IN  A                          <= 混合.Result
+      IN  B                          <= 图像纹理.007.Color
+      IN  A                          <= 混合.Result
+      IN  B                          <= 图像纹理.007.Color
+      IN  A                          <= 混合.Result
+      IN  B                          <= 图像纹理.007.Color
+      OUT Result                     => 组输出.Result
+      OUT Result                     => 组输出.Result
+      OUT Result                     => 组输出.Result
+      OUT Result                     => 组输出.Result
+
+  NODE '组输入.003'  (NodeGroupInput)
+      OUT Eyes                       => 混合.002.Factor
+
+  NODE '混合.004'  (ShaderNodeMix)
+      props: blend_type=MIX  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     <= 组输入.004.Face
+      IN  Factor                     <= 组输入.004.Face
+      IN  A                          =  0
+      IN  B                          <= 图像纹理.003.Color
+      IN  A                          =  (0, 0, 0)
+      IN  B                          <= 图像纹理.003.Color
+      IN  A                          =  (0.5, 0.5, 0.5, 1)
+      IN  B                          <= 图像纹理.003.Color
+      IN  A                          =  (0, 0, 0)
+      IN  B                          <= 图像纹理.003.Color
+      OUT Result                     => 混合.003.A
+      OUT Result                     => 混合.003.A
+      OUT Result                     => 混合.003.A
+      OUT Result                     => 混合.003.A
+
+  NODE '组输入.004'  (NodeGroupInput)
+      OUT Face                       => 混合.004.Factor
+
+  NODE '映射范围'  (ShaderNodeMapRange)
+      props: clamp=True  data_type=FLOAT  interpolation_type=LINEAR
+      IN  Value                      <= 组输入.005.Hair
+      IN  From Min                   =  0
+      IN  From Max                   =  1
+      IN  To Min                     <= 映射范围.001.Result
+      IN  To Max                     <= 图像纹理.004.Alpha
+      IN  Steps                      =  4
+      IN  Vector                     =  (0, 0, 0)
+      IN  From Min                   =  (0, 0, 0)
+      IN  From Max                   =  (1, 1, 1)
+      IN  To Min                     <= 映射范围.001.Result
+      IN  To Max                     <= 图像纹理.004.Alpha
+      IN  Steps                      =  (4, 4, 4)
+      OUT Result                     => 组输出.Result
+
+  NODE '映射范围.001'  (ShaderNodeMapRange)
+      props: clamp=True  data_type=FLOAT  interpolation_type=LINEAR
+      IN  Value                      <= 组输入.006.Body
+      IN  From Min                   =  0
+      IN  From Max                   =  1
+      IN  To Min                     <= 映射范围.002.Result
+      IN  To Max                     <= 图像纹理.001.Alpha
+      IN  Steps                      =  4
+      IN  Vector                     =  (0, 0, 0)
+      IN  From Min                   =  (0, 0, 0)
+      IN  From Max                   =  (1, 1, 1)
+      IN  To Min                     <= 映射范围.002.Result
+      IN  To Max                     <= 图像纹理.001.Alpha
+      IN  Steps                      =  (4, 4, 4)
+      OUT Result                     => 映射范围.To Min
+
+  NODE '映射范围.002'  (ShaderNodeMapRange)
+      props: clamp=True  data_type=FLOAT  interpolation_type=LINEAR
+      IN  Value                      <= 组输入.007.Body01
+      IN  From Min                   =  0
+      IN  From Max                   =  1
+      IN  To Min                     <= 映射范围.003.Result
+      IN  To Max                     <= 图像纹理.002.Alpha
+      IN  Steps                      =  4
+      IN  Vector                     =  (0, 0, 0)
+      IN  From Min                   =  (0, 0, 0)
+      IN  From Max                   =  (1, 1, 1)
+      IN  To Min                     <= 映射范围.003.Result
+      IN  To Max                     <= 图像纹理.002.Alpha
+      IN  Steps                      =  (4, 4, 4)
+      OUT Result                     => 映射范围.001.To Min
+
+  NODE '映射范围.003'  (ShaderNodeMapRange)
+      props: clamp=True  data_type=FLOAT  interpolation_type=LINEAR
+      IN  Value                      <= 组输入.008.Face
+      IN  From Min                   =  0
+      IN  From Max                   =  1
+      IN  To Min                     =  0
+      IN  To Max                     <= 图像纹理.003.Alpha
+      IN  Steps                      =  4
+      IN  Vector                     =  (0, 0, 0)
+      IN  From Min                   =  (0, 0, 0)
+      IN  From Max                   =  (1, 1, 1)
+      IN  To Min                     =  (0, 0, 0)
+      IN  To Max                     <= 图像纹理.003.Alpha
+      IN  Steps                      =  (4, 4, 4)
+      OUT Result                     => 映射范围.002.To Min
+
+  NODE '组输入.005'  (NodeGroupInput)
+      OUT Hair                       => 映射范围.Value
+
+  NODE '组输入.006'  (NodeGroupInput)
+      OUT Body                       => 映射范围.001.Value
+
+  NODE '组输入.007'  (NodeGroupInput)
+      OUT Body01                     => 映射范围.002.Value
+
+  NODE '组输入.008'  (NodeGroupInput)
+      OUT Face                       => 映射范围.003.Value
+
+  NODE '图像纹理'  (ShaderNodeTexImage)
+      props: extension=REPEAT  interpolation=Linear  projection=FLAT
+      IN  Vector                     =  (0, 0, 0)
+      OUT Color                      => 混合.005.A
+
+  NODE '图像纹理.005'  (ShaderNodeTexImage)
+      props: extension=REPEAT  interpolation=Linear  projection=FLAT
+      IN  Vector                     =  (0, 0, 0)
+      OUT Color                      => 自发光.001.Color
+
+  NODE '图像纹理.006'  (ShaderNodeTexImage)
+      props: extension=REPEAT  interpolation=Linear  projection=FLAT
+      IN  Vector                     =  (0, 0, 0)
+      OUT Color                      => 自发光.Color
+
+  NODE '混合.005'  (ShaderNodeMix)
+      props: blend_type=ADD  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     =  1
+      IN  Factor                     =  (0.5, 0.5, 0.5)
+      IN  A                          <= 图像纹理.Color
+      IN  B                          <= 着色器 转 RGB.001.Color
+      IN  A                          <= 图像纹理.Color
+      IN  B                          <= 着色器 转 RGB.001.Color
+      IN  A                          <= 图像纹理.Color
+      IN  B                          <= 着色器 转 RGB.001.Color
+      IN  A                          <= 图像纹理.Color
+      IN  B                          <= 着色器 转 RGB.001.Color
+      OUT Result                     => 混合.006.A
+      OUT Result                     => 混合.006.A
+      OUT Result                     => 混合.006.A
+      OUT Result                     => 混合.006.A
+
+  NODE '混合.006'  (ShaderNodeMix)
+      props: blend_type=ADD  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     =  1
+      IN  Factor                     =  (0.5, 0.5, 0.5)
+      IN  A                          <= 混合.005.Result
+      IN  B                          <= 着色器 转 RGB.Color
+      IN  A                          <= 混合.005.Result
+      IN  B                          <= 着色器 转 RGB.Color
+      IN  A                          <= 混合.005.Result
+      IN  B                          <= 着色器 转 RGB.Color
+      IN  A                          <= 混合.005.Result
+      IN  B                          <= 着色器 转 RGB.Color
+
+  NODE '着色器 转 RGB'  (ShaderNodeShaderToRGB)
+      IN  Shader                     <= 自发光.Emission
+      OUT Color                      => 混合.006.B
+      ALLIN  Shader
+      ALLOUT Color | Alpha
+
+  NODE '自发光'  (ShaderNodeEmission)
+      IN  Color                      <= 图像纹理.006.Color
+      IN  Strength                   =  0.2
+      IN  Weight                     =  0
+      OUT Emission                   => 着色器 转 RGB.Shader
+      ALLIN  Color | Strength | Weight
+      ALLOUT Emission
+
+  NODE '自发光.001'  (ShaderNodeEmission)
+      IN  Color                      <= 图像纹理.005.Color
+      IN  Strength                   =  1
+      IN  Weight                     =  0
+      OUT Emission                   => 着色器 转 RGB.001.Shader
+      ALLIN  Color | Strength | Weight
+      ALLOUT Emission
+
+  NODE '着色器 转 RGB.001'  (ShaderNodeShaderToRGB)
+      IN  Shader                     <= 自发光.001.Emission
+      OUT Color                      => 混合.005.B
+      ALLIN  Shader
+      ALLOUT Color | Alpha
+
+  NODE '图像纹理.007'  (ShaderNodeTexImage)
+      props: extension=REPEAT  interpolation=Linear  projection=FLAT
+      IN  Vector                     =  (0, 0, 0)
+      OUT Color                      => 混合.002.B
+
+  NODE '群组'  (ShaderNodeGroup  >>GROUP:NodeGroup)
+      OUT Result                     => 混合.007.A
+
+  NODE '混合.007'  (ShaderNodeMix)
+      props: blend_type=ADD  clamp_factor=True  data_type=RGBA  factor_mode=UNIFORM
+      IN  Factor                     =  1
+      IN  Factor                     =  (0.5, 0.5, 0.5)
+      IN  A                          <= 群组.Result
+      IN  B                          <= 图像纹理.002.Color
+      IN  A                          <= 群组.Result
+      IN  B                          <= 图像纹理.002.Color
+      IN  A                          <= 群组.Result
+      IN  B                          <= 图像纹理.002.Color
+      IN  A                          <= 群组.Result
+      IN  B                          <= 图像纹理.002.Color
+      OUT Result                     => 混合.003.B
+      OUT Result                     => 混合.003.B
+      OUT Result                     => 混合.003.B
+      OUT Result                     => 混合.003.B

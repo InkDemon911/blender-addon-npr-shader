@@ -1,0 +1,46 @@
+########################################################################################################
+# GROUP '合成器节点'   users=1   nodes=6   links=6
+########################################################################################################
+## INTERFACE
+   OUTPUT NodeSocketColor    图像                                 default=(0, 0, 0, 1)
+   INPUT  NodeSocketColor    图像                                 default=(0, 0, 0, 1)
+
+## NODES
+
+  [组输出] <GroupOutput>
+       in  图像            (id=Socket_1      ) <= 转接点.Output
+
+  [渲染层] <CompositorRLayers>
+       props: layer=ViewLayer
+       out Image         (id=Image         ) => 转接点.Input , 眩光.Image , Alpha上叠.Background
+
+  [转接点] <Reroute>
+       in  Input         (id=Input         ) <= 渲染层.Image
+       out Output        (id=Output        ) => 组输出.图像 , 预览器.Image
+
+  [预览器] <CompositorViewer>
+       in  Image         (id=Image         ) <= 转接点.Output
+
+  [眩光] <CompositorGlare>
+       in  Image         (id=Image         ) <= 渲染层.Image
+       in  Type          (id=Type          ) =  Bloom
+       in  Quality       (id=Quality       ) =  High
+       in  Smoothness    (id=Highlights Smoothness) =  0.1
+       in  Clamp         (id=Clamp Highlights) =  False
+       in  Maximum       (id=Maximum Highlights) =  10
+       in  Tint          (id=Tint          ) =  (1, 1, 1, 1)
+       in  Streaks       (id=Streaks       ) =  4
+       in  Iterations    (id=Iterations    ) =  3
+       in  Fade          (id=Fade          ) =  0.9
+       in  Color Modulation(id=Color Modulation) =  0.25
+       in  Diagonal      (id=Diagonal Star ) =  True
+       in  Sun Position  (id=Sun Position  ) =  (0.5, 0.5)
+       in  Kernel Data Type(id=Kernel Data Type) =  Float
+       in  Kernel        (id=Color Kernel  ) =  (0.8, 0.8, 0.8, 1)
+       out Glare         (id=Glare         ) => Alpha上叠.Foreground
+
+  [Alpha上叠] <CompositorAlphaOver>
+       in  Background    (id=Background    ) <= 渲染层.Image
+       in  Foreground    (id=Foreground    ) <= 眩光.Glare
+       in  Type          (id=Type          ) =  Over
+       in  Straight Alpha(id=Straight Alpha) =  False

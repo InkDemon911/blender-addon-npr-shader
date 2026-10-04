@@ -1,0 +1,115 @@
+########################################################################################################
+# GROUP 'Ramp Select'   users=1   nodes=16   links=22
+########################################################################################################
+## INTERFACE
+   OUTPUT NodeSocketFloat    RampV                              default=0
+   INPUT  NodeSocketFloat    Mask                               default=0
+   INPUT  NodeSocketFloat    A0                                 default=0
+   INPUT  NodeSocketFloat    A1                                 default=0
+   INPUT  NodeSocketFloat    A2                                 default=0
+   INPUT  NodeSocketFloat    A3                                 default=0
+   INPUT  NodeSocketFloat    A4                                 default=0
+
+## NODES
+
+  [组输入] <GroupInput>
+       out Mask          (id=Socket_0      ) => A2.Value , 运算.011.Value , 运算.012.Value , 运算.013.Value
+       out A0            (id=Socket_5      ) => Ramp条数.Value
+       out A1            (id=Socket_1      ) => Ramp条数.001.Value
+       out A2            (id=Socket_2      ) => Ramp条数.002.Value
+       out A3            (id=Socket_3      ) => Ramp条数.003.Value
+       out A4            (id=Socket_4      ) => Ramp条数.004.Value
+
+  [组输出] <GroupOutput>
+       in  RampV         (id=Socket_6      ) <= 混合.004.Result
+
+  [A2] <Math label='A5' frame='帧.001'>
+       props: operation=GREATER_THAN  use_clamp=True
+       in  Value         (id=Value         ) <= 组输入.Mask
+       in  Value         (id=Value_001     ) =  0.95
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 混合.004.Factor
+
+  [运算.011] <Math label='A4' frame='帧.001'>
+       props: operation=GREATER_THAN  use_clamp=True
+       in  Value         (id=Value         ) <= 组输入.Mask
+       in  Value         (id=Value_001     ) =  0.65
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 混合.003.Factor
+
+  [运算.012] <Math label='A3' frame='帧.001'>
+       props: operation=GREATER_THAN  use_clamp=True
+       in  Value         (id=Value         ) <= 组输入.Mask
+       in  Value         (id=Value_001     ) =  0.45
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 混合.002.Factor
+
+  [运算.013] <Math label='A2' frame='帧.001'>
+       props: operation=GREATER_THAN  use_clamp=True
+       in  Value         (id=Value         ) <= 组输入.Mask
+       in  Value         (id=Value_001     ) =  0.25
+       in  Value         (id=Value_002     ) =  0.5
+       out Value         (id=Value         ) => 混合.001.Factor
+
+  [帧.001] <Frame>
+       props: shrink=True  label_size=20
+
+  [Ramp条数] <Group >>GROUP:'Ramp条数' label='A0'>
+       in  Value         (id=Socket_0      ) <= 组输入.A0
+       out Value         (id=Socket_1      ) => 混合.001.A
+
+  [Ramp条数.001] <Group >>GROUP:'Ramp条数' label='A1'>
+       in  Value         (id=Socket_0      ) <= 组输入.A1
+       out Value         (id=Socket_1      ) => 混合.001.B
+
+  [Ramp条数.002] <Group >>GROUP:'Ramp条数' label='A2'>
+       in  Value         (id=Socket_0      ) <= 组输入.A2
+       out Value         (id=Socket_1      ) => 混合.002.B
+
+  [Ramp条数.003] <Group >>GROUP:'Ramp条数' label='A3'>
+       in  Value         (id=Socket_0      ) <= 组输入.A3
+       out Value         (id=Socket_1      ) => 混合.003.B
+
+  [Ramp条数.004] <Group >>GROUP:'Ramp条数' label='A4'>
+       in  Value         (id=Socket_0      ) <= 组输入.A4
+       out Value         (id=Socket_1      ) => 混合.004.B
+
+  [混合.001] <Mix>
+       props: data_type=FLOAT  factor_mode=UNIFORM  blend_type=MIX  clamp_factor=True
+       in  Factor        (id=Factor_Float  ) <= 运算.013.Value
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  A             (id=A_Float       ) <= Ramp条数.Value
+       in  B             (id=B_Float       ) <= Ramp条数.001.Value
+       in  A             (id=A_Color       ) =  (0.5, 0.5, 0.5, 1)
+       in  B             (id=B_Color       ) =  (0.5, 0.5, 0.5, 1)
+       out Result        (id=Result_Float  ) => 混合.002.A
+
+  [混合.002] <Mix>
+       props: data_type=FLOAT  factor_mode=UNIFORM  blend_type=MIX  clamp_factor=True
+       in  Factor        (id=Factor_Float  ) <= 运算.012.Value
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  A             (id=A_Float       ) <= 混合.001.Result
+       in  B             (id=B_Float       ) <= Ramp条数.002.Value
+       in  A             (id=A_Color       ) =  (0.5, 0.5, 0.5, 1)
+       in  B             (id=B_Color       ) =  (0.5, 0.5, 0.5, 1)
+       out Result        (id=Result_Float  ) => 混合.003.A
+
+  [混合.003] <Mix>
+       props: data_type=FLOAT  factor_mode=UNIFORM  blend_type=MIX  clamp_factor=True
+       in  Factor        (id=Factor_Float  ) <= 运算.011.Value
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  A             (id=A_Float       ) <= 混合.002.Result
+       in  B             (id=B_Float       ) <= Ramp条数.003.Value
+       in  A             (id=A_Color       ) =  (0.5, 0.5, 0.5, 1)
+       in  B             (id=B_Color       ) =  (0.5, 0.5, 0.5, 1)
+       out Result        (id=Result_Float  ) => 混合.004.A
+
+  [混合.004] <Mix>
+       props: data_type=FLOAT  factor_mode=UNIFORM  blend_type=MIX  clamp_factor=True
+       in  Factor        (id=Factor_Float  ) <= A2.Value
+       in  Factor        (id=Factor_Vector ) =  (0.5, 0.5, 0.5)
+       in  A             (id=A_Float       ) <= 混合.003.Result
+       in  B             (id=B_Float       ) <= Ramp条数.004.Value
+       in  A             (id=A_Color       ) =  (0.5, 0.5, 0.5, 1)
+       in  B             (id=B_Color       ) =  (0.5, 0.5, 0.5, 1)
+       out Result        (id=Result_Float  ) => 组输出.RampV
