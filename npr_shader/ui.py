@@ -290,7 +290,7 @@ class NprGroupsPanel(Panel):
 
         row = layout.row(align=True)
         row.operator("npr.presets_create", text="创建预设组", icon='PRESET')
-        row.operator("npr.batch_apply", text="批量处理", icon='MOD_MULTIRESOLVE')
+        row.operator("npr.batch_apply", text="批量处理", icon='MOD_MULTIRES')
 
 
 class NprAssignPanel(Panel):
@@ -752,7 +752,7 @@ class NprAdvancedPanel(Panel):
         row.operator("npr.validate", text="自检", icon='CHECKMARK')
 
         box = layout.box()
-        box.label(text="批量处理", icon='MOD_MULTIRESOLVE')
+        box.label(text="批量处理", icon='MOD_MULTIRES')
         row = box.row(align=True)
         row.operator("npr.batch_apply", icon='PLAY')
         box.prop(settings, "recursive")

@@ -183,4 +183,23 @@ try:
 except ImportError as exc:
     print("  跳过绑定检查：", exc)
 
+# ---------------------------------------------------------------------------- icon 校验
+# 非法 icon 名会让面板 draw() 抛 TypeError，而且 Blender 会把整份图标枚举
+# （约 1000 项）打进日志 —— 实测一次就是 40+ MB。这类错误必须在提交前拦住。
+print("\n=== icon 名称校验（对照 Blender 合法图标表）===")
+try:
+    import tools_icon_check
+
+    _pkg = os.path.join(plugin_parent, "npr_shader")
+    _usages = tools_icon_check.scan(_pkg)
+    _bad = {k: v for k, v in _usages.items() if k not in tools_icon_check.VALID_ICONS}
+    if _bad:
+        for _icon in sorted(_bad):
+            print("  !! 非法 icon %-24s %s" % (_icon, ", ".join(_bad[_icon])))
+            failures.append("非法 icon 名称：%s（%s）" % (_icon, ", ".join(_bad[_icon])))
+    else:
+        print("  用了 %d 个不同 icon，全部合法" % len(_usages))
+except ImportError as exc:
+    print("  跳过 icon 校验：", exc)
+
 print("\nDEV_CHECK_DONE failures=%d" % len(failures))
